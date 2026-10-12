@@ -8,6 +8,7 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 ### Fixed
 
 - Tests: the router path test skips the `references/...` placeholder. Linux CI failed on it; Windows accepted the `...` path part.
+- README: Grok asks the user to trust a plugin before it installs it.
 
 ## [0.5.0] - 2026-10-12
 
