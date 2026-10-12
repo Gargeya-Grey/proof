@@ -17,7 +17,7 @@ When two of them disagree, follow the higher one and say so in one line.
 ## Size the task first
 
 - Trivial (one obvious change, two files or fewer, no risk the host's rules name): do not load pstack. Make the change and prove it with the cheapest real check.
-- Anything larger: read `references/pstack/skills/poteto-mode/SKILL.md` in full and follow it, with the Verification section, the path rule, the overrides and the host map below. If `../../references/pstack/skills/poteto-mode/SKILL.md`, counted from this file, does not exist, this skill was installed without the rest of its plugin. Tell the user to install `proof` with the host's plugin command, or on other hosts by cloning its repository (see the plugin's README). Then continue with Verification steps 1 and 2 and the routes to the installed skills (`tdd`, `grilling`, `codebase-design`, `writing-for-agents`), and skip every file under `references/`.
+- Anything larger: read `references/pstack/skills/poteto-mode/SKILL.md` in full and follow it, with the Verification section, the path rule, the overrides and the host map below. If `../../references/pstack/skills/poteto-mode/SKILL.md`, counted from this file, does not exist, this skill was installed without the rest of its plugin. Tell the user to install `proof` with the host's plugin command, or on other hosts by cloning its repository (README at https://github.com/Gargeya-Grey/proof). Then continue with Verification steps 1 and 2 and the routes to the installed skills (`tdd`, `grilling`, `codebase-design`, `writing-for-agents`), and skip every file under `references/`.
 
 ## Verification
 

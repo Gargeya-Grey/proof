@@ -1,6 +1,6 @@
 # Decisions
 
-Owner: Gargeya. Started 2026-10-12. Each decision says what was chosen and why. Procedures live in [docs/maintaining.md](docs/maintaining.md).
+Owner: [Gargeya Sharma](https://github.com/Gargeya-Grey). Started 2026-10-12. Each decision says what was chosen and why. Procedures live in [docs/maintaining.md](docs/maintaining.md).
 
 ## Goal
 
@@ -16,7 +16,7 @@ One plugin, `proof`, gives Claude Code, Codex, Grok and other Agent Skills hosts
 
 ## D1. The home-folder repository
 
-A research worker ran git in a scratch folder. The home folder is itself a git repository, so git fetched pstack into `~/.git` and checked out 2 files into `~`. On 2026-10-12 the repair script moved every changed file to `~/.claude/backups/home-git-repair-2026-10-12` and deleted nothing; the script is kept there. Tooling in this repo downloads tarballs by commit sha and runs no git commands.
+A research worker ran git in a scratch folder. The home folder is itself a git repository, so git fetched pstack into `~/.git` and checked out 2 files into `~`. On 2026-10-12 a repair moved every changed file to a backup and deleted nothing. Tooling in this repo downloads tarballs by commit sha and runs no git commands.
 
 ## D2. One curated plugin, not two installs
 
@@ -56,11 +56,11 @@ pstack names Cursor models (for example `grok-4.7-xhigh-fast`). The router says:
 
 ## D6. The Codex rewrite of pstack
 
-The rewrite at `~/plugins/pstack` (0.15.5+codex) edited upstream text by hand. It drifts on every upstream release. `proof` replaced it on Codex on 2026-10-12. Its text is not reused. Its source and its "personal" marketplace file moved to `~/.claude/backups/grok-codex-cleanup-2026-10-12` the same day.
+The rewrite at `~/plugins/pstack` (0.15.5+codex) edited upstream text by hand. It drifts on every upstream release. `proof` replaced it on Codex on 2026-10-12. Its text is not reused. Its source was removed, with a backup, the same day.
 
 ## D7. Repository
 
-`W:\AI-Projects\Harness Optimization`. It holds a Claude Code marketplace (`.claude-plugin/marketplace.json`, which Grok also reads) and a Codex marketplace (`.agents/plugins/marketplace.json`). Both point to `plugins/proof`. Nothing is pushed until the owner asks.
+[github.com/Gargeya-Grey/proof](https://github.com/Gargeya-Grey/proof), public, MIT. It holds a Claude Code marketplace (`.claude-plugin/marketplace.json`, which Grok also reads) and a Codex marketplace (`.agents/plugins/marketplace.json`). Both are named `gargeya-grey` and point to `plugins/proof`, so every install command reads `proof@gargeya-grey` and names the author. A marketplace rename breaks every install, so the name stays. Commits, tags and pushes happen only when the owner asks.
 
 ## D8. Delegates read the router
 
@@ -75,7 +75,7 @@ Codex 0.162.1 installs `proof` from the root `plugin.json` alone (verified on 20
 - **SemVer 2.0.0**, with the bump rules in [docs/maintaining.md](docs/maintaining.md#version-rules). The version source of truth is `plugins/proof/.claude-plugin/plugin.json`; `tools/release.py` copies it into `plugins/proof/plugin.json`, and `release.py check` fails if they differ.
 - **Keep a Changelog** in `CHANGELOG.md`. Each release section ends with an `Upstream:` line, so every proof version names the exact pstack and Matt Pocock commits it ships.
 - **Tags** use Claude Code's convention `proof--vX.Y.Z`, made by `claude plugin tag plugins/proof`.
-- **Why the version matters:** Claude Code and Codex deliver a change to people who install from GitHub only when the version changes. On the owner's PC, Claude Code and Grok load the plugin in place from this folder, and Codex refreshes its copy on `codex plugin add` (verified 2026-10-12), so no bump is needed for local testing.
+- **Why the version matters:** Claude Code and Codex deliver a change to people who install from GitHub only when the version changes. From a local clone, Claude Code and Grok load the plugin in place, and Codex refreshes its copy on `codex plugin add` (verified 2026-10-12), so local testing needs no bump.
 - **Upstream releases only.** `update` follows each parent's releases, not its main branch: Matt Pocock's GitHub releases, and the commits that bump `pstack/plugin.json` (cursor/plugins has no tags). On 2026-10-12 Matt's `main` was 46 commits past release v1.3.1; following `main` would ship unreleased work.
 - **Exact pins.** `update --to <sha>` pins a commit that is not a release. Its version label is `<release>+<sha7>` (for example `v1.3.1+49dd158`), so no line calls unreleased code a release. A later plain `update` keeps the pin until the parent's latest release is ahead of it, so it never moves a pin backwards.
 - The upstream versions stay out of the version string. SemVer build metadata (`+...`) does not affect ordering, and one plugin version must stay one release.
@@ -86,7 +86,7 @@ The update and release procedures are in `AGENTS.md` (Codex, Grok and Cursor rea
 
 ## D12. Grok
 
-Grok reads Claude Code's folders and settings by default; a `[compat.claude]` section in `~/.grok/config.toml` can turn this off. It reads `~/.claude/skills`, `~/.claude/CLAUDE.md`, `~/.claude/settings.json` (its marketplaces and enabled plugins) and `~/.claude.json` (MCP servers). It also scans `.agents/skills` at every level. So `proof`, installed in Claude Code, also loads in Grok, in place (verified with `grok inspect` on 2026-10-12). A separate Grok install of `proof` would add a second copy. Without Claude Code, `grok plugin install OWNER/REPO#plugins/proof` installs it. On 2026-10-12 the owner's Grok install of pstack (0.15.15, without the router) and the 8 old skill copies in `~/.grok/skills` were removed, so Grok gets pstack text only through `proof`. Backup: `~/.claude/backups/grok-codex-cleanup-2026-10-12`.
+Grok reads Claude Code's folders and settings by default; a `[compat.claude]` section in `~/.grok/config.toml` can turn this off. It reads `~/.claude/skills`, `~/.claude/CLAUDE.md`, `~/.claude/settings.json` (its marketplaces and enabled plugins) and `~/.claude.json` (MCP servers). It also scans `.agents/skills` at every level. So `proof`, installed in Claude Code, also loads in Grok, in place (verified with `grok inspect` on 2026-10-12). A separate Grok install of `proof` would add a second copy. Without Claude Code, `grok plugin install Gargeya-Grey/proof#plugins/proof` installs it.
 
 ## D13. Routes for replaced skills
 

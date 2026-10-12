@@ -5,15 +5,32 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-12
+
+### Added
+
+- Author link, `homepage` and `repository` in both manifests. The license holder is Gargeya Sharma.
+
+### Changed
+
+- The marketplace name is now `gargeya-grey` (was `harness-optimization`). Install with `proof@gargeya-grey`.
+- README: install and update commands for `github.com/Gargeya-Grey/proof`, and a credits and license section.
+- docs/maintaining.md and DECISIONS.md: local-clone instructions in place of one machine's paths.
+- Router: the install guard names the repository URL.
+- README credits pstack to Lauren Tan, its copyright holder.
+- LICENSE holds the plain MIT text. The note on vendored files moved to the README.
+
+Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
+
 ## [0.4.1] - 2026-10-12
-
-### Fixed
-
-- Router: when the pstack files are missing (for example after `npx skills add`, which copies single skill folders), `work` tells the user to install the plugin with the host's plugin command.
 
 ### Added
 
 - README and DECISIONS.md D15: how `proof` is distributed, and why `npx skills add` is not supported.
+
+### Fixed
+
+- Router: when the pstack files are missing (for example after `npx skills add`, which copies single skill folders), `work` tells the user to install the plugin with the host's plugin command.
 
 Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
 
@@ -34,6 +51,11 @@ Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
 
 ## [0.3.0] - 2026-10-12
 
+### Added
+
+- `plugins/proof/LICENSE`, so a copy of the plugin folder carries the license.
+- Tests: the total length of model-visible descriptions stays at or below 1200 characters; the plugin's LICENSE matches the root LICENSE.
+
 ### Fixed
 
 - `vendor.py update` writes `vendor.json` and `CHANGELOG.md` only after the vendored files sync, and `update` and `refs` stop when `vendor.json` and the lock disagree. Before, a failed sync left a rerun reporting `up-to-date`.
@@ -45,11 +67,6 @@ Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
 - Router: the Investigation route names its playbook file, and the Path rule says a `skills/` path is at the plugin root, never under `references/`.
 - Maintainer docs: the exit codes of `update`, a reachable done condition for the Map step, and the full file list for a new model-visible skill.
 - Manifest and marketplace descriptions name Grok and other Agent Skills hosts.
-
-### Added
-
-- `plugins/proof/LICENSE`, so a copy of the plugin folder carries the license.
-- Tests: the total length of model-visible descriptions stays at or below 1200 characters; the plugin's LICENSE matches the root LICENSE.
 
 Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
 

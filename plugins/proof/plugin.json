@@ -1,11 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "proof",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Verification-first engineering: pstack and Matt Pocock skills behind one router, the same on Claude Code, Codex, Grok and other Agent Skills hosts.",
   "author": {
-    "name": "Gargeya"
+    "name": "Gargeya Sharma",
+    "url": "https://github.com/Gargeya-Grey"
   },
+  "homepage": "https://github.com/Gargeya-Grey/proof",
+  "repository": "https://github.com/Gargeya-Grey/proof",
   "license": "MIT",
   "keywords": [
     "verification",
@@ -19,7 +22,7 @@
         "displayName": "proof",
         "shortDescription": "Verification-first engineering",
         "longDescription": "One router skill (work) sends each task to the right verification-first workflow: grilling, test-driven development, codebase design, writing for agents, and the pstack playbooks. The pstack and Matt Pocock text is vendored byte-for-byte and loaded only on demand.",
-        "developerName": "Gargeya",
+        "developerName": "Gargeya Sharma",
         "category": "Developer Tools",
         "capabilities": [
           "Interactive",

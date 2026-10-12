@@ -123,10 +123,10 @@ class ManifestTests(unittest.TestCase):
 
     def test_02_marketplaces_point_at_plugin(self):
         c = read_json(ROOT / ".claude-plugin" / "marketplace.json")
-        self.assertEqual(c["name"], "harness-optimization")
+        self.assertEqual(c["name"], "gargeya-grey")
         self.assertEqual([(p["name"], p["source"]) for p in c["plugins"]], [("proof", "./plugins/proof")])
         x = read_json(ROOT / ".agents" / "plugins" / "marketplace.json")
-        self.assertEqual(x["name"], "harness-optimization")
+        self.assertEqual(x["name"], "gargeya-grey")
         self.assertEqual(len(x["plugins"]), 1)
         self.assertEqual(x["plugins"][0]["name"], "proof")
         self.assertEqual(x["plugins"][0]["source"], {"source": "local", "path": "./plugins/proof"})

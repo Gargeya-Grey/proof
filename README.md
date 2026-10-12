@@ -2,9 +2,11 @@
 
 A verification-first engineering workflow for coding agents. One plugin that works the same way on Claude Code, Codex, Grok and other Agent Skills hosts.
 
+By [Gargeya Sharma](https://github.com/Gargeya-Grey).
+
 `proof` combines two projects without changing their text:
 
-- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Cursor: playbooks and principles for verified engineering work.
+- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan, published in `cursor/plugins`: playbooks and principles for verified engineering work.
 - [Matt Pocock's skills](https://github.com/mattpocock/skills): `grilling`, `tdd`, `codebase-design`, `writing-for-agents` and `handoff`.
 
 One router skill, `work`, sizes each task, sends it to the right playbook or skill, and translates Cursor-specific names for the host you use. [DECISIONS.md](DECISIONS.md) explains every design choice.
@@ -30,18 +32,16 @@ When a project has its own verification skill, `verify-<app>`, every change is p
 
 ## Install
 
-Replace `OWNER/REPO` with this repository's GitHub path, or with a local folder path.
+| Host | Install | Update |
+|---|---|---|
+| Claude Code | `claude plugin marketplace add Gargeya-Grey/proof`, then `claude plugin install proof@gargeya-grey` | `claude plugin marketplace update gargeya-grey`, then `claude plugin update proof@gargeya-grey` |
+| Codex | `codex plugin marketplace add Gargeya-Grey/proof`, then `codex plugin add proof@gargeya-grey` | `codex plugin marketplace upgrade`, then `codex plugin add proof@gargeya-grey` |
+| Grok | `grok plugin install Gargeya-Grey/proof#plugins/proof` | `grok plugin update` |
+| Other Agent Skills hosts | `git clone https://github.com/Gargeya-Grey/proof`, then add `proof/plugins/proof/skills` to the host's skill paths | `git pull` |
 
-| Host | Install |
-|---|---|
-| Claude Code | `claude plugin marketplace add OWNER/REPO`, then `claude plugin install proof@harness-optimization` |
-| Codex | `codex plugin marketplace add OWNER/REPO`, then `codex plugin add proof@harness-optimization` |
-| Grok | `grok plugin install OWNER/REPO#plugins/proof`. If Claude Code already has `proof`, Grok loads it from there. |
-| Other Agent Skills hosts | Clone the repo and add `plugins/proof/skills` to the host's skill paths. |
+Start a new session after an install or an update. Grok also reads Claude Code's plugins, so with `proof` in Claude Code, Grok needs no install of its own.
 
 Use the plugin command of your host. `npx skills add` installs single skill folders only. It leaves out the pstack files that `work` reads, so `work` then tells you to install the plugin.
-
-Updates and the full host table: [docs/maintaining.md](docs/maintaining.md#install-and-refresh).
 
 ## Layout
 
@@ -71,4 +71,6 @@ AGENTS.md  CLAUDE.md                Instructions for agents that work on this re
 
 ## License
 
-MIT for this repository's own files ([LICENSE](LICENSE)). The vendored pstack and Matt Pocock files keep their own MIT licenses: see [plugins/proof/LICENSES](plugins/proof/LICENSES) and [NOTICE.md](plugins/proof/NOTICE.md).
+Copyright (c) 2026 Gargeya Sharma. MIT license ([LICENSE](LICENSE)): use, change and share `proof` freely, and keep the copyright line and the license text in every copy.
+
+`proof` is built on [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan and [skills](https://github.com/mattpocock/skills) by Matt Pocock. Their files (under `plugins/proof/references/`, `plugins/proof/LICENSES/` and the five Matt Pocock skill folders) keep their own MIT licenses: see [plugins/proof/LICENSES](plugins/proof/LICENSES) and [NOTICE.md](plugins/proof/NOTICE.md).

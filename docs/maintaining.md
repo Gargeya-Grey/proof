@@ -49,7 +49,7 @@ To take one exact commit instead, run `update --source <name> --to <sha>`. A lat
 
 While the version is `0.x`, a breaking change bumps minor instead of major.
 
-The version matters for people who install from GitHub: Claude Code and Codex deliver a change to them only when the version changes. On the owner's PC, Claude Code and Grok load the plugin from this folder and `codex plugin add` copies it again, so local changes need no bump.
+The version matters for people who install from GitHub: Claude Code and Codex deliver a change to them only when the version changes. From a local clone, Claude Code and Grok load the plugin in place and `codex plugin add` copies it again, so local changes need no bump.
 
 ### Steps
 
@@ -61,20 +61,15 @@ The version matters for people who install from GitHub: Claude Code and Codex de
 
 ## Install and refresh
 
-### On the owner's PC (marketplace = this folder)
+Users install from GitHub with the commands in [README.md](../README.md#install).
+
+To test changes before a release, install from your local clone. The marketplace is then the clone folder.
 
 | Host | Install once | After a change |
 |---|---|---|
-| Claude Code | `claude plugin marketplace add "W:/AI-Projects/Harness Optimization"`, then `claude plugin install proof@harness-optimization` | Loads in place. Start a new session or run `/reload-plugins`. |
-| Codex | `codex plugin marketplace add "W:/AI-Projects/Harness Optimization"`, then `codex plugin add proof@harness-optimization` | Codex keeps a copy. Run `codex plugin add proof@harness-optimization` again, then start a new session. |
+| Claude Code | `claude plugin marketplace add <clone path>`, then `claude plugin install proof@gargeya-grey` | Loads in place. Start a new session or run `/reload-plugins`. |
+| Codex | `codex plugin marketplace add <clone path>`, then `codex plugin add proof@gargeya-grey` | Codex keeps a copy. Run `codex plugin add proof@gargeya-grey` again, then start a new session. |
 | Grok | Nothing. Grok reads Claude Code's plugin settings (`[compat.claude]`, on by default), so it loads `proof` in place. | Start a new session. |
-| Other Agent Skills hosts | Add `plugins/proof/skills` to the host's skill paths. Keep it inside this repo: the router reads `../../references`. | Start a new session. |
+| Other Agent Skills hosts | Add `<clone path>/plugins/proof/skills` to the host's skill paths. Keep it inside the clone: the router reads `../../references`. | Start a new session. |
 
-### For other people (after the repo is on GitHub)
-
-| Host | Install | Update |
-|---|---|---|
-| Claude Code | `claude plugin marketplace add OWNER/REPO`, then `claude plugin install proof@harness-optimization` | `claude plugin marketplace update harness-optimization`, then `claude plugin update proof@harness-optimization`; or turn on auto-update for the marketplace in `/plugin`. |
-| Codex | `codex plugin marketplace add OWNER/REPO`, then `codex plugin add proof@harness-optimization` | `codex plugin marketplace upgrade`, then `codex plugin add proof@harness-optimization` |
-| Grok | `grok plugin install OWNER/REPO#plugins/proof` | `grok plugin update` |
-| Other hosts | Clone the repo and add `plugins/proof/skills` to the host's skill paths. | `git pull` |
+One marketplace name can point to one source at a time. Remove a GitHub install of `gargeya-grey` before you add the local clone, and the reverse.
