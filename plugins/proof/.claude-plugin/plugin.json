@@ -1,0 +1,15 @@
+{
+  "name": "proof",
+  "version": "0.4.1",
+  "description": "Verification-first engineering: pstack and Matt Pocock skills behind one router, the same on Claude Code, Codex, Grok and other Agent Skills hosts.",
+  "author": {
+    "name": "Gargeya"
+  },
+  "license": "MIT",
+  "keywords": [
+    "verification",
+    "engineering",
+    "pstack",
+    "skills"
+  ]
+}

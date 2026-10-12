@@ -1,0 +1,9 @@
+# Store every text file with LF. Vendored files keep their exact upstream bytes on every platform.
+* text=auto eol=lf
+plugins/proof/references/** -text
+plugins/proof/LICENSES/** -text
+plugins/proof/skills/grilling/** -text
+plugins/proof/skills/tdd/** -text
+plugins/proof/skills/codebase-design/** -text
+plugins/proof/skills/writing-for-agents/** -text
+plugins/proof/skills/handoff/** -text

@@ -1,0 +1,5 @@
+_scratch/
+__pycache__/
+*.pyc
+.vendor-cache/
+node_modules/

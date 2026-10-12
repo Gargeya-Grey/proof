@@ -1,0 +1,219 @@
+{
+  "sources": {
+    "pstack": {
+      "repo": "cursor/plugins",
+      "sha": "1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def",
+      "version": "0.15.20",
+      "subfolder": "pstack",
+      "license": "MIT",
+      "license_file": "plugins/proof/LICENSES/pstack.txt",
+      "label": "pstack",
+      "version_files": [
+        "pstack/plugin.json",
+        "pstack/.cursor-plugin/plugin.json"
+      ],
+      "skills_root": "pstack/skills",
+      "skills_depth": 1,
+      "skills_dest": "plugins/proof/references/pstack/skills",
+      "track": {
+        "type": "path",
+        "path": "pstack/plugin.json"
+      }
+    },
+    "mattpocock": {
+      "repo": "mattpocock/skills",
+      "sha": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+      "version": "v1.3.1",
+      "subfolder": "",
+      "license": "MIT",
+      "license_file": "plugins/proof/LICENSES/mattpocock-skills.txt",
+      "label": "mattpocock/skills",
+      "version_files": [
+        ".claude-plugin/plugin.json",
+        "package.json"
+      ],
+      "skills_root": "skills",
+      "skills_depth": 2,
+      "skills_dest": "plugins/proof/skills",
+      "version_prefix": "v",
+      "track": {
+        "type": "release"
+      }
+    }
+  },
+  "managed_roots": [
+    "plugins/proof/references",
+    "plugins/proof/LICENSES",
+    "plugins/proof/skills/grilling",
+    "plugins/proof/skills/tdd",
+    "plugins/proof/skills/codebase-design",
+    "plugins/proof/skills/writing-for-agents",
+    "plugins/proof/skills/handoff"
+  ],
+  "rules": [
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/poteto-mode",
+      "to": "plugins/proof/references/pstack/skills/poteto-mode"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "multiple": true,
+      "from": "pstack/skills/principle-*",
+      "to": "plugins/proof/references/pstack/skills/{name}"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/how",
+      "to": "plugins/proof/references/pstack/skills/how"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/why",
+      "to": "plugins/proof/references/pstack/skills/why"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/architect",
+      "to": "plugins/proof/references/pstack/skills/architect"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/arena",
+      "to": "plugins/proof/references/pstack/skills/arena"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/interrogate",
+      "to": "plugins/proof/references/pstack/skills/interrogate"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/unslop",
+      "to": "plugins/proof/references/pstack/skills/unslop"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/technical-writing",
+      "to": "plugins/proof/references/pstack/skills/technical-writing"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/no-comments",
+      "to": "plugins/proof/references/pstack/skills/no-comments"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/benchmark-checklist",
+      "to": "plugins/proof/references/pstack/skills/benchmark-checklist"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/show-me-your-work",
+      "to": "plugins/proof/references/pstack/skills/show-me-your-work"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/figure-it-out",
+      "to": "plugins/proof/references/pstack/skills/figure-it-out"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/recall",
+      "to": "plugins/proof/references/pstack/skills/recall"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/correct",
+      "to": "plugins/proof/references/pstack/skills/correct"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/create-verification-skill",
+      "to": "plugins/proof/references/pstack/skills/create-verification-skill"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/maintain-verification-skill",
+      "to": "plugins/proof/references/pstack/skills/maintain-verification-skill"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/blast-radius",
+      "to": "plugins/proof/references/pstack/skills/blast-radius"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/typescript-best-practices",
+      "to": "plugins/proof/references/pstack/skills/typescript-best-practices"
+    },
+    {
+      "source": "pstack",
+      "type": "files",
+      "multiple": true,
+      "from": "pstack/agents/*.md",
+      "to": "plugins/proof/references/pstack/agents"
+    },
+    {
+      "source": "pstack",
+      "type": "file",
+      "from": "pstack/LICENSE",
+      "to": "plugins/proof/LICENSES/pstack.txt"
+    },
+    {
+      "source": "mattpocock",
+      "type": "dir",
+      "from": "skills/*/grilling",
+      "to": "plugins/proof/skills/grilling"
+    },
+    {
+      "source": "mattpocock",
+      "type": "dir",
+      "from": "skills/*/tdd",
+      "to": "plugins/proof/skills/tdd"
+    },
+    {
+      "source": "mattpocock",
+      "type": "dir",
+      "from": "skills/*/codebase-design",
+      "to": "plugins/proof/skills/codebase-design"
+    },
+    {
+      "source": "mattpocock",
+      "type": "dir",
+      "from": "skills/*/writing-for-agents",
+      "to": "plugins/proof/skills/writing-for-agents"
+    },
+    {
+      "source": "mattpocock",
+      "type": "dir",
+      "from": "skills/*/handoff",
+      "to": "plugins/proof/skills/handoff"
+    },
+    {
+      "source": "mattpocock",
+      "type": "file",
+      "from": "LICENSE",
+      "to": "plugins/proof/LICENSES/mattpocock-skills.txt"
+    }
+  ]
+}

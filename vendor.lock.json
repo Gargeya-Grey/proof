@@ -1,0 +1,1003 @@
+{
+  "version": 1,
+  "sources": {
+    "pstack": {
+      "repo": "cursor/plugins",
+      "sha": "1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def"
+    },
+    "mattpocock": {
+      "repo": "mattpocock/skills",
+      "sha": "24fe0ef7737efae15c87225755e9f6f5965e4888"
+    }
+  },
+  "managed_roots": [
+    "plugins/proof/references",
+    "plugins/proof/LICENSES",
+    "plugins/proof/skills/grilling",
+    "plugins/proof/skills/tdd",
+    "plugins/proof/skills/codebase-design",
+    "plugins/proof/skills/writing-for-agents",
+    "plugins/proof/skills/handoff"
+  ],
+  "not_vendored": {
+    "pstack": [
+      "automate-me",
+      "bro",
+      "ketchup",
+      "make-bot-ui",
+      "poteto-help",
+      "reflect",
+      "setup-pstack",
+      "swarm",
+      "tdd",
+      "teach"
+    ],
+    "mattpocock": [
+      "ask-matt",
+      "claude-handoff",
+      "code-review",
+      "diagnosing-bugs",
+      "domain-modeling",
+      "git-guardrails-claude-code",
+      "grill-me",
+      "grill-with-docs",
+      "implement",
+      "implement-spec",
+      "improve-codebase-architecture",
+      "loop-me",
+      "migrate-to-shoehorn",
+      "pr",
+      "prototype",
+      "research",
+      "retro",
+      "scaffold-exercises",
+      "setup-matt-pocock-skills",
+      "setup-pre-commit",
+      "setup-ts-deep-modules",
+      "teach",
+      "to-questionnaire",
+      "to-spec",
+      "to-tickets",
+      "triage",
+      "wait-what",
+      "wayfinder",
+      "wizard",
+      "writing-beats",
+      "writing-fragments",
+      "writing-shape"
+    ]
+  },
+  "files": [
+    {
+      "source": "mattpocock",
+      "upstream": "LICENSE",
+      "dest": "plugins/proof/LICENSES/mattpocock-skills.txt",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "size": 1068
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/LICENSE",
+      "dest": "plugins/proof/LICENSES/pstack.txt",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "size": 1067
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/agents/comment-sicko.md",
+      "dest": "plugins/proof/references/pstack/agents/comment-sicko.md",
+      "sha256": "3e239e40b7b4b9beb2cf7f3ccc57f2388eb8b69bd1ba8ae888ef87ef6e0e2116",
+      "size": 2230
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/agents/poteto-agent.md",
+      "dest": "plugins/proof/references/pstack/agents/poteto-agent.md",
+      "sha256": "5cbeb2c1fea67b28ea9ef95c3416dca3c3f8be278b9654acbf2ea87c7877440a",
+      "size": 893
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/architect/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/architect/SKILL.md",
+      "sha256": "31f8e97a52bfa5432edd61f68ade2a8632ef0bacbc2d2a6802d7a0e6821944ac",
+      "size": 5469
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/architect/references/design-red-flags.md",
+      "dest": "plugins/proof/references/pstack/skills/architect/references/design-red-flags.md",
+      "sha256": "d0e639e4cc588ec865f930d3a4111faad60987ae36925917e319d7ceca7c69ce",
+      "size": 3009
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/architect/references/rationale-template.md",
+      "dest": "plugins/proof/references/pstack/skills/architect/references/rationale-template.md",
+      "sha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3",
+      "size": 3050
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/architect/references/runner-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/architect/references/runner-prompt.md",
+      "sha256": "21dd5314aab778c5007228027a4591d97693fbec6ab86524037772b63f40948e",
+      "size": 3092
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/arena/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/arena/SKILL.md",
+      "sha256": "f15524f216c1c63804b89edb4ff8e53bb21a7b8ed367368dedeb9468eeec6a92",
+      "size": 4279
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/benchmark-checklist/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/benchmark-checklist/SKILL.md",
+      "sha256": "ba109e96c8f6c1c391baccf19e5d11e14370df7b3f2605e1572cd565a6c0fca0",
+      "size": 5002
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/blast-radius/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/blast-radius/SKILL.md",
+      "sha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "size": 3856
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/correct/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/correct/SKILL.md",
+      "sha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+      "size": 2445
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/create-verification-skill/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/create-verification-skill/SKILL.md",
+      "sha256": "d353973547bf8ad8977eca645f4cd4feaed0d32f4b43d1448f906b0a76c4d694",
+      "size": 6533
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "dest": "plugins/proof/references/pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "sha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "size": 2601
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "dest": "plugins/proof/references/pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "sha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "size": 2926
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "dest": "plugins/proof/references/pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "sha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "size": 3478
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/figure-it-out/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/figure-it-out/SKILL.md",
+      "sha256": "d9574cc24929773d5c23f40626ae1e09660afddd7de48e08dd6494d9fff9bbf0",
+      "size": 3978
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/how/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/how/SKILL.md",
+      "sha256": "47cfe3e6fe55c49c3bdf8ad1b645dcd5fece8f0c36fd22d2e7221f9faa71f648",
+      "size": 2518
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/how/references/explainer-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/how/references/explainer-prompt.md",
+      "sha256": "ddb89cebefc24e2b54517a331aedfe045b6971e101f45c71b8cef4cccff45bff",
+      "size": 3085
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/how/references/explorer-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/how/references/explorer-prompt.md",
+      "sha256": "6300128385ee940fd42ecb84b0e623435440a2dc283eae54ee4a52ba56947ba1",
+      "size": 1135
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/interrogate/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/interrogate/SKILL.md",
+      "sha256": "25341c393f515c1e1fa9bce668b7551e9f98c195113a460ff524d3c1f7f50cd9",
+      "size": 4317
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/interrogate/references/code-quality-review.md",
+      "dest": "plugins/proof/references/pstack/skills/interrogate/references/code-quality-review.md",
+      "sha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8",
+      "size": 5217
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/interrogate/references/lead-judgment.md",
+      "dest": "plugins/proof/references/pstack/skills/interrogate/references/lead-judgment.md",
+      "sha256": "6e5bdf5670eb34017692e9b6c546f36ac7552e6bb9f3f2f3429164fcc46a9361",
+      "size": 3465
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/interrogate/references/reviewer-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/interrogate/references/reviewer-prompt.md",
+      "sha256": "f6005cc2b535006fca97a96c5bfda49df57312eedf1ffd8d1aaaf3eb33817c25",
+      "size": 2275
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/interrogate/references/rubric.md",
+      "dest": "plugins/proof/references/pstack/skills/interrogate/references/rubric.md",
+      "sha256": "0f9c6bdb0b96e26dbde5f6407f417e0c02f54080e7a1268d8994f3c3ec6c5ac0",
+      "size": 4772
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/maintain-verification-skill/SKILL.md",
+      "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "size": 4922
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/no-comments/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/no-comments/SKILL.md",
+      "sha256": "08b9c769040c104ef7fb1902ebac97047edbb89b58c7e113e53c918287b092e6",
+      "size": 2560
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/SKILL.md",
+      "sha256": "c5900f379a4582cd2980b45b82c419baffc11929a37e7bb463d77dd0569d37a5",
+      "size": 19455
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "sha256": "f6a13a445c360b48d6cd72780ac01955f45b82826476efe0e67c7559329407aa",
+      "size": 831
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "sha256": "15e54ad3ac92565613980772d8708de6e19cc4690bfd4bb3fb8836522407377b",
+      "size": 1878
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "sha256": "05ca30a16242c19d0c78ba1e88cca66f858d75252cb154fd740099fe292de802",
+      "size": 9431
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "sha256": "007c0a3b12011954a224f54773ef4ad7b75918be0a311914c1b51ad4e794c1e5",
+      "size": 5031
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/babysit.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "sha256": "e261c1ff5581e0f8fc6c686f34de4b535f87473e77beabea7dd8323021214610",
+      "size": 7619
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "sha256": "018bbc146ae19145caa6c7e70591fee081b64447dda1c1c4b681c9974d928b13",
+      "size": 2255
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/eval.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/eval.md",
+      "sha256": "b862bfa2fae2399abf047a8e80d3e3dddb64003af96fb1cebb625216131e36bb",
+      "size": 2524
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/feature.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/feature.md",
+      "sha256": "3a62cc4a8cbcf144bb9dd05f05420a15be0d38b784d3b141bb730a5852f50a62",
+      "size": 2766
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/hillclimb.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/hillclimb.md",
+      "sha256": "244f289898fe67a458065e90fe8217c916c5acf61cdee8975ade3f9831a12e91",
+      "size": 4403
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/investigation.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/investigation.md",
+      "sha256": "dc66bcf6af3a074fc7f67aa5e12b93ef571a4fb4d8e17f2f1af5ae5359f42e46",
+      "size": 928
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "sha256": "27d310e3fc3937a60b8fcbe1318f9d249a7477a722907bf85b3e4eb3dc436b11",
+      "size": 12977
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "sha256": "931070f5674e81a191277253d4e02b1c45d091b223f93bf506d3896a428a5967",
+      "size": 5587
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "sha256": "d42b4375f1bd4ce23da0b575a198571a2117df7eea10c3c9fc6d92ae1053f7be",
+      "size": 16779
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/pause-safely.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/pause-safely.md",
+      "sha256": "77968cfe5f4a71a8cd33e0ae8ffcdbd88dd693a212c240457773e6c40c96c21d",
+      "size": 1135
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/perf-issue.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/perf-issue.md",
+      "sha256": "2b88ad0f880e4d4d755ac19fe52414d6631d6baa816d060f53cf0a7429d7e14a",
+      "size": 1446
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/prototype.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/prototype.md",
+      "sha256": "7aa1f52c691c3d46d5afc527b23f90977fce869ce33573c73c81a4c7f0cde962",
+      "size": 2161
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/refactoring.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/refactoring.md",
+      "sha256": "50f4f7d3d301551f8b8a57c3303c99958c5ca630ae0d0051823b6987c0eb5b96",
+      "size": 3211
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "sha256": "594f02c40c243a346e1f57b688ecf2ed5e882f21b3d24ed2204d1ac6f1c24a8a",
+      "size": 1210
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "sha256": "1604fb463f7c7410d43fa024ca76c1c1824c166a01fd69d61f073d06fdca2a47",
+      "size": 1678
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/shipping.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/shipping.md",
+      "sha256": "19f3f6803a7bbe9ff04f624b03e3b55f07ac0a05e991aa00d5fe51239b920b2a",
+      "size": 5439
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+      "sha256": "e8a671fd5511a894f90c933bca75815e7a1d730cb53333075a80b0927e81acfc",
+      "size": 1763
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "sha256": "950ca51999a6454c98eee6bcbc3d1bbe501a4e3a5d5439b6f6ddc378991b256c",
+      "size": 1197
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "sha256": "ffecceb6d2fa7e07ca5703c968f4b7c5947309ed695d51fc73a55c3da5906480",
+      "size": 2843
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/references/bugbot-triage.md",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/references/bugbot-triage.md",
+      "sha256": "b2d146c770d8d3593e1ef3d77b668039b8e1f78093ea1a86f1d45d7f99614309",
+      "size": 9629
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "size": 1737
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/bun.lock",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "size": 6679
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/check-plan.mjs",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/check-plan.mjs",
+      "sha256": "e58c3d871b09d477be00628d69dd23ffa6c2e3a1728f5b867a841baa8e90278b",
+      "size": 8153
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/check-plan.test.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/check-plan.test.ts",
+      "sha256": "c80f3ea043b81f219b92c4c8a3af6bdd4f8d32ea596ec15b5b9e0252645f2ae8",
+      "size": 3289
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/orch/orch.test.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/orch/orch.test.ts",
+      "sha256": "773153ac74de6eb15f58d2682f487f5f30672d7efe3ef1d24a131aa9129d279b",
+      "size": 18425
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "size": 15511
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/orch/store.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/orch/store.ts",
+      "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b",
+      "size": 42927
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/package.json",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "fd511a0c01f522e0c781ddd8eccea0e91697a0856c6e6a3261de78a6a0287c72",
+      "size": 371
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1",
+      "size": 6161
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "size": 6983
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+      "sha256": "cf0c5ee61b4a73444c1b775cfb6c81a40d312e055dd21a1f5eae6276e54de13f",
+      "size": 3357
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+      "sha256": "035f4a0f1ab5a17ebf94ad1f7c14d1abd948852be30987c0e9d107b5ea5028ab",
+      "size": 12162
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "sha256": "9ea8de77e019de19929fbe4a86bc88492ffbecd89d6816d9857ed49db904c151",
+      "size": 25117
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+      "sha256": "146acabcfee9b6fa3342358eb0a9504aa65fd081bbc15b10adf9c1c5485067d2",
+      "size": 12405
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+      "sha256": "f2a3e31223d05edc05e5473cc3f8f3cb9bd20c202c30c6abe7f21f0f7aee8fbb",
+      "size": 25169
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
+      "size": 7083
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+      "sha256": "1ecccc72320b086c63ce3f73c959896fd747363e63553b3b1136296ea4069e45",
+      "size": 270
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+      "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6",
+      "size": 2258
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+      "sha256": "0cac435294dc85ce1ba755e8e67f6c5ab163dfa252f2722d6e3a2d68c58fec59",
+      "size": 12649
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "size": 211
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "dest": "plugins/proof/references/pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "sha256": "9faa9a2534ad64069dec67ac5b5ce1dc23b8fe635ecfd7f6557b1e3ada61fd2f",
+      "size": 5494
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-attack-the-premise/SKILL.md",
+      "sha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "size": 1941
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-boundary-discipline/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-boundary-discipline/SKILL.md",
+      "sha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+      "size": 1883
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-build-the-lever/SKILL.md",
+      "sha256": "3434b0ad0c640c6f1d7960be7a8986c3bcdc14e26060360dec29903df60074ff",
+      "size": 2386
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "sha256": "228963799189f481827d6f28065f278bc2008ffa37030b1234cbd5814d36b9e9",
+      "size": 558
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "sha256": "2de83d99f93f60ec6313455b0bc9aa9f0bfb93dd59f414f403691322db00d4db",
+      "size": 395
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-experience-first/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-experience-first/SKILL.md",
+      "sha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+      "size": 1184
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-explain-the-number/SKILL.md",
+      "sha256": "cd5a25f9e7cf023627ccb470dc5faa97542f29b4319496a32b839a8e1e988047",
+      "size": 1663
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-fix-root-causes/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-fix-root-causes/SKILL.md",
+      "sha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+      "size": 1246
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-foundational-thinking/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-foundational-thinking/SKILL.md",
+      "sha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+      "size": 1530
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "sha256": "af0b9dd70b43628ce4a59a4d332e9d9ad055084e460f430e7a757495c627e81a",
+      "size": 519
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-laziness-protocol/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-laziness-protocol/SKILL.md",
+      "sha256": "1be6e7a435f26a75a76eb848b9c3d611b9977d0f5822361753244da25ca3ca45",
+      "size": 552
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "sha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+      "size": 1390
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "sha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+      "size": 1146
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "sha256": "1ea2b7fef2391cae5844c4efdbd59031f775e8a52d06b7495d707229a200dcca",
+      "size": 1996
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-model-the-domain/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-model-the-domain/SKILL.md",
+      "sha256": "52c0d85e0c3827c41c18299b642657d7b47eaf77b7b31609e42e0df42b84c75f",
+      "size": 1858
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "sha256": "05030a7a083c337676f793881b4e93cd218e8f1dd676529f56e6ac1d3efb8d1f",
+      "size": 910
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "sha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+      "size": 1078
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-prove-it-works/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-prove-it-works/SKILL.md",
+      "sha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+      "size": 1371
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "sha256": "170e0a658783e43fee8ec5a8c2422a4abb8f69cef621dd1819a95910b8207034",
+      "size": 758
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "sha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+      "size": 1565
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "sha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
+      "size": 1705
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "sha256": "8c93bb9d1a7f38e2ef37655d93f0e790fa59903105af3d500cc8a663ebe45f3f",
+      "size": 909
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "sha256": "b2b73ba42920f9c3174ecdf808ec6e4591b3a9266ada9a05814f386004266d3a",
+      "size": 1386
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/principle-type-system-discipline/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/principle-type-system-discipline/SKILL.md",
+      "sha256": "2e492cef34bb25a20b9115df61f9ef3a9837e3fda144ffda8079e5f45a1b72e8",
+      "size": 3661
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/recall/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/recall/SKILL.md",
+      "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "size": 5212
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/show-me-your-work/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/show-me-your-work/SKILL.md",
+      "sha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550",
+      "size": 6418
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/show-me-your-work/references/decision-log-template.tsv",
+      "dest": "plugins/proof/references/pstack/skills/show-me-your-work/references/decision-log-template.tsv",
+      "sha256": "6779378006a2f5225e8c06deb84f1d913fb532041ebbb6e50d94600bfe3f4b76",
+      "size": 38
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/show-me-your-work/scripts/log.sh",
+      "dest": "plugins/proof/references/pstack/skills/show-me-your-work/scripts/log.sh",
+      "sha256": "a65a4bc5fb7cdeadbdb7b7ff1ca4682f4d9c42420942b2977cd17b46c4ac338e",
+      "size": 1377
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/technical-writing/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/technical-writing/SKILL.md",
+      "sha256": "61fe9c424a798ebf36ad94941f87be049cb8827bdf86d21474a0dde37b513c43",
+      "size": 9093
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/typescript-best-practices/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/typescript-best-practices/SKILL.md",
+      "sha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "size": 2684
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/typescript-best-practices/references/patterns.md",
+      "dest": "plugins/proof/references/pstack/skills/typescript-best-practices/references/patterns.md",
+      "sha256": "faa1362055374452efccac1b629677c61acfb0bcc6c4e3311836b5715638ee18",
+      "size": 9214
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/unslop/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/unslop/SKILL.md",
+      "sha256": "ccab208e315ce05e2fab8eeee2f7879f1289b5c6844840b2d307adf31c79144f",
+      "size": 5827
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/SKILL.md",
+      "dest": "plugins/proof/references/pstack/skills/why/SKILL.md",
+      "sha256": "fa1d1e9dec14b15381c1ccccad74044d6b6ea3b4af56821f59ba2d8e59b07545",
+      "size": 8770
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/epistemics.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/epistemics.md",
+      "sha256": "d54a2361b2d5973bc3fe2edf62f446d87935974d4b40d47f23b9529f956ca758",
+      "size": 6736
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/investigator-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/investigator-prompt.md",
+      "sha256": "c44afba186f899094f3694e6c9d6de5d14ff7c4ce28b787a9f50fc789c9a7fc3",
+      "size": 5554
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/source-playbook.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/source-playbook.md",
+      "sha256": "9ae9dcb9d09111c9facc68510331c5aba4aed9b1b057314ff1fc0e166ad3993a",
+      "size": 1363
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/code-archaeology.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/code-archaeology.md",
+      "sha256": "a4a3970e9db448054aed676f3f7feeee667b4b69f0bd57c8fd72b751be687cc7",
+      "size": 1440
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/databricks.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/databricks.md",
+      "sha256": "236ede7aab6454662a992db088a5393537a5233a4c26719c93188f9e174488f6",
+      "size": 6994
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/datadog.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/datadog.md",
+      "sha256": "b139faac5dc11b8f26c8255dce6033c1a6ac143b038d3dd103f2034c5dbec9cd",
+      "size": 4971
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/incident-postmortem.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/incident-postmortem.md",
+      "sha256": "bf2661f1a81c37700884a45b77d6289be0c802b065febced31990e6564510839",
+      "size": 372
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/linear.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/linear.md",
+      "sha256": "01304e7f1badfcfb78babbb0edcadeb3cc8dd3f713793420cdff24ba190f907c",
+      "size": 2996
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/notion.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/notion.md",
+      "sha256": "3bcfa695c49dfad4ac036d5d7181c12585f55ac04f1936198d16ab75a2788997",
+      "size": 2853
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/sentry.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/sentry.md",
+      "sha256": "2d4f83048eac1df530b399e2aed75dd7c9c18577b7665420aaeb96d0ceb0b702",
+      "size": 2089
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/sources/slack.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/sources/slack.md",
+      "sha256": "3bc6309f5c7b26ace3b919dbd7f7b048861dd2020f910fe24f656cc74b3b661c",
+      "size": 1336
+    },
+    {
+      "source": "pstack",
+      "upstream": "pstack/skills/why/references/synthesizer-prompt.md",
+      "dest": "plugins/proof/references/pstack/skills/why/references/synthesizer-prompt.md",
+      "sha256": "11c62671aa7b7a6e3d36929ffe2b59bf95e6ca664eee4d93e6ee527dd3390ddb",
+      "size": 7146
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/codebase-design/DEEPENING.md",
+      "dest": "plugins/proof/skills/codebase-design/DEEPENING.md",
+      "sha256": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1",
+      "size": 2553
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/codebase-design/DESIGN-IT-TWICE.md",
+      "dest": "plugins/proof/skills/codebase-design/DESIGN-IT-TWICE.md",
+      "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010",
+      "size": 2665
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/codebase-design/SKILL.md",
+      "dest": "plugins/proof/skills/codebase-design/SKILL.md",
+      "sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+      "size": 6446
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/codebase-design/agents/openai.yaml",
+      "dest": "plugins/proof/skills/codebase-design/agents/openai.yaml",
+      "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
+      "size": 102
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/grilling/SKILL.md",
+      "dest": "plugins/proof/skills/grilling/SKILL.md",
+      "sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+      "size": 1987
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/grilling/agents/openai.yaml",
+      "dest": "plugins/proof/skills/grilling/agents/openai.yaml",
+      "sha256": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
+      "size": 113
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/handoff/SKILL.md",
+      "dest": "plugins/proof/skills/handoff/SKILL.md",
+      "sha256": "7c62de979fdc7ac32fb5ddb2146156c917f80ee070d30fadc9d40343c4b6ed25",
+      "size": 894
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/handoff/agents/openai.yaml",
+      "dest": "plugins/proof/skills/handoff/agents/openai.yaml",
+      "sha256": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28",
+      "size": 141
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/tdd/SKILL.md",
+      "dest": "plugins/proof/skills/tdd/SKILL.md",
+      "sha256": "93ea419b76e9caaf26153b828e984f7c3fb136f4caa67b14af95f32ea965a1cc",
+      "size": 3550
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/tdd/agents/openai.yaml",
+      "dest": "plugins/proof/skills/tdd/agents/openai.yaml",
+      "sha256": "ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b",
+      "size": 87
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/tdd/mocking.md",
+      "dest": "plugins/proof/skills/tdd/mocking.md",
+      "sha256": "3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef",
+      "size": 1481
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/engineering/tdd/tests.md",
+      "dest": "plugins/proof/skills/tdd/tests.md",
+      "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
+      "size": 2214
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+      "dest": "plugins/proof/skills/writing-for-agents/SKILL-MECHANICS.md",
+      "sha256": "c768e6307c7c10728c401c213f2c4ba71c542127eeb7ad2956aabd15a0fa0059",
+      "size": 2629
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/writing-for-agents/SKILL.md",
+      "dest": "plugins/proof/skills/writing-for-agents/SKILL.md",
+      "sha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
+      "size": 10886
+    },
+    {
+      "source": "mattpocock",
+      "upstream": "skills/productivity/writing-for-agents/agents/openai.yaml",
+      "dest": "plugins/proof/skills/writing-for-agents/agents/openai.yaml",
+      "sha256": "eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b",
+      "size": 102
+    }
+  ]
+}
