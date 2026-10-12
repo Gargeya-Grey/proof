@@ -43,7 +43,7 @@ Each task type below starts here, also when a pstack playbook is already running
 |---|---|
 | Debug a defect | pstack's Bug fix playbook (`playbooks/bug-fix.md`). Prove the fix with the `tdd` skill. |
 | Research how code works or why it is built that way | pstack's Investigation playbook (`playbooks/investigation.md`), with pstack's how and why skills. |
-| Review a diff, branch or PR | The host's own review skill when the host lists one that reports findings without editing (for example Codex `review-agent`, Grok `review`). Otherwise review it yourself, or with one fresh reviewer subagent. Report findings. Edit files, post comments or open a draft review on the PR only when the user asks. |
+| Review a diff, branch or PR | The host's own review skill when the host lists one that reports findings without editing (for example Claude Code `code-review` without `--fix`, Codex `review-agent`, Grok `review`). Otherwise review it yourself, or with one fresh reviewer subagent. Report findings. Edit files, post comments or open a draft review on the PR only when the user asks. |
 | Create, repair or audit the project's verification skill | Find it with Verification step 1. None: `references/pstack/skills/create-verification-skill/SKILL.md`. One: `references/pstack/skills/maintain-verification-skill/SKILL.md`. |
 | Test a plan, design or decision before building | The `grilling` skill. |
 | Design a module, interface or seam | The `codebase-design` skill. |

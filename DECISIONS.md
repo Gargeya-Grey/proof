@@ -39,7 +39,7 @@ Upstream frontmatter stays byte-identical. Visibility comes from the layout (ski
 
 ## D4. Model names
 
-pstack names Cursor models (for example `grok-4.7-xhigh-fast`). The router says: use the user's model and subagent policy, else the host's defaults, and never pass a model name taken from pstack text.
+pstack names Cursor models. The router says: use the user's model and subagent policy, else the host's defaults, and never pass a model name taken from pstack text.
 
 ## D5. What is left out
 
@@ -90,7 +90,7 @@ Grok reads Claude Code's folders and settings by default; a `[compat.claude]` se
 
 ## D13. Routes for replaced skills
 
-Four removed Matt Pocock copies have replacements: `grill-me` → `grilling`; `diagnosing-bugs` → pstack's Bug fix playbook; `research` → pstack's Investigation playbook with how and why; `code-review` → the host's own review skill that reports findings without editing (Codex `review-agent`, Grok `review`), else a self-review or one fresh reviewer. A host's skill named `code-review` is not always that kind: Grok's is a strict maintainability review that can lead to restructuring, and Claude Code's is an optional plugin from its official marketplace, not a built-in (both checked on 2026-10-12). pstack never routes to `grilling`, `codebase-design` or `writing-for-agents`. So the router has a Routes table with one first stop per task type. It costs tokens only when `work` loads.
+Four removed Matt Pocock copies have replacements: `grill-me` → `grilling`; `diagnosing-bugs` → pstack's Bug fix playbook; `research` → pstack's Investigation playbook with how and why; `code-review` → the host's own review skill that reports findings without editing (Codex `review-agent`, Grok `review`), else a self-review or one fresh reviewer. A host's skill named `code-review` is not always that kind: Grok's is a strict maintainability review that can lead to restructuring. Claude Code's built-in `code-review` reports findings and edits only with `--fix`, so the route picks it (checked on 2026-10-12). pstack never routes to `grilling`, `codebase-design` or `writing-for-agents`. So the router has a Routes table with one first stop per task type. It costs tokens only when `work` loads.
 
 ## D14. The verification skill is a fixed step
 
@@ -104,7 +104,7 @@ pstack's `create-verification-skill` writes a project-local `verify-<app>` skill
 
 ## D15. Distribution
 
-- **One source:** this GitHub repository. A release is a tag (`proof--vX.Y.Z`). Claude Code, Codex and Grok install from it with their own plugin command; other Agent Skills hosts clone it and add `plugins/proof/skills` to their skill paths (README, Install).
+- **One source:** this GitHub repository. A release is a tag (`proof--vX.Y.Z`). Claude Code, Codex and Grok install from it with their own plugin command; other Agent Skills hosts get a clone, with `skills/` and `references/` copied side by side into the host's folders (README, Install).
 - **No npm package.** It would be a second release channel to keep in step, and Claude Code, Codex and Grok already install plugins from GitHub.
 - **`npx skills add` is not supported.** The `skills` CLI copies only the folder that holds each `SKILL.md` (`copyDirectory(skill.path, ...)` in vercel-labs/skills `src/installer.ts`, read on 2026-10-12). The router needs `references/`, which is outside its folder. Moving `references/` into `skills/work/` would fix that, but a host that scans skill folders recursively could then list the 42 vendored pstack skills (rule 1); not checked on any host. So the router checks for its files and tells the user to install the plugin.
 - **Later:** submit `proof` to the official marketplaces of each host, so users find it in the host's plugin browser.

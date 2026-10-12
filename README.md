@@ -37,11 +37,13 @@ When a project has its own verification skill, `verify-<app>`, every change is p
 | Claude Code | `claude plugin marketplace add Gargeya-Grey/proof`, then `claude plugin install proof@gargeya-grey` | `claude plugin marketplace update gargeya-grey`, then `claude plugin update proof@gargeya-grey` |
 | Codex | `codex plugin marketplace add Gargeya-Grey/proof`, then `codex plugin add proof@gargeya-grey` | `codex plugin marketplace upgrade`, then `codex plugin add proof@gargeya-grey` |
 | Grok | `grok plugin install Gargeya-Grey/proof#plugins/proof`, then confirm the trust question (or add `--trust`) | `grok plugin update` |
-| Other Agent Skills hosts | `git clone https://github.com/Gargeya-Grey/proof`, then add `proof/plugins/proof/skills` to the host's skill paths | `git pull` |
+| Other Agent Skills hosts | `git clone https://github.com/Gargeya-Grey/proof`, then copy the files side by side (below) | `git pull`, delete the old copies, then copy again |
 
 Start a new session after an install or an update. Grok also reads Claude Code's plugins, so with `proof` in Claude Code, Grok needs no install of its own.
 
-Use the plugin command of your host. `npx skills add` installs single skill folders only. It leaves out the pstack files that `work` reads, so `work` then tells you to install the plugin.
+**Other Agent Skills hosts** (for example OpenCode; not tested yet): `work` reads its pstack files from `../../references`, so `skills/` and `references/` must sit side by side. Copy everything in `proof/plugins/proof/skills/` into the host's skills folder. Copy `references/`, `LICENSES/`, `LICENSE` and `NOTICE.md` from `proof/plugins/proof/` into the folder above it. For OpenCode that is `~/.config/opencode/skills/` and `~/.config/opencode/references/`. Choose a folder that no other installed host reads, or the skills load twice.
+
+Use the plugin command of your host where it has one. `npx skills add` installs single skill folders only. It leaves out the pstack files that `work` reads, so `work` then tells you to install the plugin.
 
 ## Layout
 

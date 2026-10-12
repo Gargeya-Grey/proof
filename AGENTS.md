@@ -7,7 +7,7 @@ This repository builds `proof`: one plugin that gives Claude Code, Codex, Grok a
 - **Update** from upstream (pstack, Matt Pocock skills): follow [docs/maintaining.md](docs/maintaining.md#update-from-upstream).
 - **Release** a version: follow [docs/maintaining.md](docs/maintaining.md#release).
 - **Install or refresh** the plugin on a host: see [docs/maintaining.md](docs/maintaining.md#install-and-refresh).
-- **Change the router** (`plugins/proof/skills/work/SKILL.md`): load the `writing-for-agents` skill first; every pstack name the vendored text uses must stay reachable.
+- **Change the router** (`plugins/proof/skills/work/SKILL.md`): load the `writing-for-agents` skill first; every pstack name the vendored text uses must stay reachable. After the change, run [tests/router-scenarios.md](tests/router-scenarios.md) with a small model; done when every answer matches its Expected row.
 
 ## Rules
 

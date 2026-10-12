@@ -5,10 +5,27 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-12
+
+### Added
+
+- `tests/router-scenarios.md`: 24 router cases and 2 install cases with expected answers, run with a small model after every router change (AGENTS.md).
+
+### Changed
+
+- README: install steps for other Agent Skills hosts (copy `skills/` and `references/` side by side), for example OpenCode.
+- docs/maintaining.md: which GitHub account pushes a release; push the branch, wait for CI to pass, then push the tag.
+- Router: the review route names Claude Code's `code-review` without `--fix` as an example.
+- README: other hosts copy the license files too, and delete old copies before an update.
+- DECISIONS.md D4 names no model.
+
 ### Fixed
 
 - Tests: the router path test skips the `references/...` placeholder. Linux CI failed on it; Windows accepted the `...` path part.
 - README: Grok asks the user to trust a plugin before it installs it.
+- DECISIONS.md D13: Claude Code has a built-in `code-review` skill that reports findings; an earlier line said it had none.
+
+Upstream: pstack 0.15.20 (`1b6d44f`), mattpocock/skills v1.3.1 (`24fe0ef`).
 
 ## [0.5.0] - 2026-10-12
 

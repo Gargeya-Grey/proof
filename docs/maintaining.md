@@ -57,7 +57,10 @@ The version matters for people who install from GitHub: Claude Code and Codex de
 2. Run `python -I tools/release.py bump <major|minor|patch>` with the bump from the table.
    Done when both manifests show the new version and `CHANGELOG.md` has a `## [x.y.z] - date` section with an `Upstream:` line.
 3. Run the checks in [AGENTS.md](../AGENTS.md#checks).
-4. Only when the owner asks: commit (`release: proof x.y.z`), run `claude plugin tag plugins/proof` (it creates the tag `proof--vx.y.z` after it checks the manifests), then push the branch and the tag.
+4. Only when the owner asks: commit (`release: proof x.y.z`) and run `claude plugin tag plugins/proof` (it creates the tag `proof--vx.y.z` after it checks the manifests).
+5. Push with an account that can write to `Gargeya-Grey/proof`. When `gh` holds several accounts, run `gh auth switch --user Gargeya-Grey` first and switch back afterwards. Push the branch, then wait for its CI run: `gh run watch <run id> -R Gargeya-Grey/proof --exit-status`.
+   Done when CI passes. Then push the tag.
+   When CI fails: both marketplaces read the pushed branch, so users may already have the change. Fix it at once and release a patch. Never move or delete a pushed tag.
 
 ## Install and refresh
 
@@ -70,6 +73,6 @@ To test changes before a release, install from your local clone. The marketplace
 | Claude Code | `claude plugin marketplace add <clone path>`, then `claude plugin install proof@gargeya-grey` | Loads in place. Start a new session or run `/reload-plugins`. |
 | Codex | `codex plugin marketplace add <clone path>`, then `codex plugin add proof@gargeya-grey` | Codex keeps a copy. Run `codex plugin add proof@gargeya-grey` again, then start a new session. |
 | Grok | Nothing. Grok reads Claude Code's plugin settings (`[compat.claude]`, on by default), so it loads `proof` in place. | Start a new session. |
-| Other Agent Skills hosts | Add `<clone path>/plugins/proof/skills` to the host's skill paths. Keep it inside the clone: the router reads `../../references`. | Start a new session. |
+| Other Agent Skills hosts | Copy the files from `<clone path>/plugins/proof/` side by side, as in [README.md](../README.md#install). | Delete the old copies, copy again, then start a new session. |
 
 One marketplace name can point to one source at a time. Remove a GitHub install of `gargeya-grey` before you add the local clone, and the reverse.
