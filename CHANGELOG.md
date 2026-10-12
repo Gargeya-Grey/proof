@@ -5,6 +5,10 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+### Fixed
+
+- Tests: the router path test skips the `references/...` placeholder. Linux CI failed on it; Windows accepted the `...` path part.
+
 ## [0.5.0] - 2026-10-12
 
 ### Added

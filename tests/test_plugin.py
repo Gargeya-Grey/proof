@@ -184,7 +184,7 @@ class SkillTests(unittest.TestCase):
     def test_05_router_paths_exist(self):
         text = (SKILLS / "work" / "SKILL.md").read_text(encoding="utf-8")
         paths = [t for t in re.findall(r"`((?:references|skills)/[^`\s]+)`", text)
-                 if "<" not in t and not any(part == "X" or part.endswith("-X") for part in t.split("/"))]
+                 if "<" not in t and not any(part in ("X", "...") or part.endswith("-X") for part in t.split("/"))]
         self.assertTrue(paths, "router names no concrete paths")
         for t in paths:
             with self.subTest(path=t):
