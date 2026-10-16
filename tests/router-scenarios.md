@@ -14,7 +14,7 @@ Done when every answer matches its Expected row. When a case fails, fix the rout
 ```
 Read the file plugins/proof/skills/work/SKILL.md. Read no other file and run no command.
 
-Using only that router file, answer each case in one line: the file or skill that the Routes table or the Verification section sends you to (a path relative to plugins/proof, or a skill name; a task larger than trivial also reads poteto-mode first, so do not list poteto-mode), whether you ask the user anything (quote it, or say "no"), and whether you make a git commit (yes or no).
+Using only that router file, answer each case in one line: the file, skill or section that the Routes table, the Verification section or the Economy section sends you to (a path relative to plugins/proof, or a skill name; a task larger than trivial also reads poteto-mode first, so do not list poteto-mode), whether you ask the user anything (quote it, or say "no"), and whether you make a git commit (yes or no).
 
 1. Host: Claude Code. "Pick up where the last agent stopped on this branch."
 2. Host: Claude Code. "Pause now, I am going offline. Someone else continues tomorrow."
@@ -40,6 +40,8 @@ Using only that router file, answer each case in one line: the file or skill tha
 22. Host: Grok. "Write an AGENTS.md for this repository."
 23. Host: Claude Code. The host's instruction files name `migration` as a risk. "Change one default value in migrations/0042_add_index.sql."
 24. Host: Claude Code. You are inside pstack's create-verification-skill, and its last step tells you to point the user at `/maintain-verification-skill`. What do you tell the user?
+25. You are a subagent. Your brief: "Add a --limit flag to the CLI's list command." The code is written. What do you run before you hand back, and do you wait for CI?
+26. Host: Codex. `.agents/skills/verify-web/SKILL.md` exists. Your pull request has had 4 review rounds from an outside reviewer bot. Round 4 left one security finding and two style findings. What do you fix, and do you request another review?
 ```
 
 ## Expected
@@ -70,6 +72,8 @@ Using only that router file, answer each case in one line: the file or skill tha
 | 22 | The `writing-for-agents` skill | No | No |
 | 23 | Not trivial (the file carries a risk the host names): poteto-mode and the matching playbook | Only the verification question, when no `verify-*` exists | No |
 | 24 | Tell the user to ask in words: "audit the verification skill" | No | No |
+| 25 | Economy, worker contract: the checks for the files you changed, then hand back once with evidence. No CI wait: CI belongs to the main session. | No | No |
+| 26 | Economy, review convergence: fix the security finding in one last push; answer the style findings with a reason or an issue link; request no further review. | No | No (Overrides: only when the user or their instructions ask) |
 
 ## Install cases
 

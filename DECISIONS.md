@@ -39,7 +39,7 @@ Upstream frontmatter stays byte-identical. Visibility comes from the layout (ski
 
 ## D4. Model names
 
-pstack names Cursor models. The router says: use the user's model and subagent policy, else the host's defaults, and never pass a model name taken from pstack text.
+pstack names Cursor models. The router says: use the user's model and subagent policy, else the Economy model tier (the middle tier for building and the strongest for review, on a host that offers tiers), else the host's default, and never pass a model name taken from pstack text. On 2026-10-15 build subagents on the strongest tier spent about a third of one week's usage limit in one day; the middle tier builds as well when a strong review follows.
 
 ## D5. What is left out
 
