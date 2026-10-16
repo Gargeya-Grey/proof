@@ -35,6 +35,16 @@ Only the session that talks to the user asks. A subagent follows its brief. When
 
 Done when the change is proved through the verification skill, or the final report says why there is none.
 
+## Economy
+
+For every task larger than trivial. These rules cut cost and keep every proof step. The user's rules come first (Authority), and a push follows the Overrides.
+
+- **Checks ladder.** While you edit, run the checks for the files you changed. Use the verification skill wherever Verification and the playbook ask, for example a reproduction or one unit's proof. The main session runs the full suite once before each push, and the full proof once at the end.
+- **Review convergence.** An outside reviewer is a review bot or a person on the pull request, not a subagent you start. A round is one review of one pushed head. All outside reviewers together get at most 4 rounds, and each round gets at most one push. Rounds 1 and 2: fix every finding, and the same fault in every other place in the change. From round 3: fix defects only (wrong behaviour, a crash, a broken build or test, data loss, security, privacy, a doc the code contradicts), and answer the rest with a reason or an issue link. After round 4, deliver those fixes in one push, request no further review, and finish.
+- **Worker contract.** A subagent does one unit with its own files, proves it with the checks for those files, and hands back once, with evidence. The main session runs the full suite, waits on CI and answers pull-request reviews. Follow-up work goes to the main session, or to a fresh subagent whose brief holds the original brief, every later directive and the prior report.
+- **Model tier by work.** When the user has no model policy and the host offers tiers, build at the middle tier, and use the strongest tier for review or after a failed attempt. Otherwise use the host's default.
+- **Batched turns.** Each turn reads the whole context again. Send independent reads and checks together in one turn, and wait only when the next step needs a result.
+
 ## Routes
 
 Each task type below starts here, also when a pstack playbook is already running.
@@ -69,13 +79,13 @@ Paths are relative to the plugin root, two folders above this file (`../../`). I
 |---|---|
 | the tdd skill | The `tdd` skill of this plugin. |
 | the `code-review` skill (named in `tdd`) | The Review route above. |
-| swarm, Orchestrate, Autopilot-full, Autopilot-stack | The user's own orchestration skill when one exists (for example `task-graph`). Otherwise: parallel subagents with exclusive files, then one fresh reviewer. |
+| swarm, Orchestrate, Autopilot-full, Autopilot-stack | The user's own orchestration skill when one exists (for example `task-graph`). Otherwise: parallel subagents with exclusive files under the Economy worker contract, then one fresh reviewer. |
 | "Use any MCP tool"; external actions proceed without asking | Reversible local work proceeds. Messages, posts, tickets, deploys, pushes and other actions outside the machine follow the host's permission rules. |
 | Any commit, "commit liberally", rebase, push, PR or merge step | Do it only when the user asked for it or the user's own instructions (instruction files, a skill the user runs) say to. Otherwise leave the change uncommitted and say so. |
 | Pause safely: the WIP commit | No commit. Write the resume note that `skills/handoff/SKILL.md` describes. |
 | Session pickup: trust the trail | Re-verify the current state before you build on it. |
 | `git show origin/main:pstack/<path>` (multi-phase plans) | Read `references/pstack/<path>` and write that path in the plan. `check-plan.mjs` then reports the missing `git show origin/main:` marker; ignore that one line. |
-| setup-pstack, `pstack-models.mdc`, model names, "explicit model per role", "Fresh subagents by default" | The user's model and subagent policy (for example a routing file their instructions name), else the host's defaults. Never pass a model name taken from pstack text. |
+| setup-pstack, `pstack-models.mdc`, model names, "explicit model per role", "Fresh subagents by default" | The user's model and subagent policy (for example a routing file their instructions name), else the Economy model tier. Never pass a model name taken from pstack text. |
 | create-skill (Cursor built-in), the Authoring a skill playbook | The `writing-for-agents` skill. |
 | deslop (cursor-team-kit) | The unslop reference and a self-review of the diff. In Claude Code, also the `simplify` skill when it is listed. |
 | control-ui, control-cli (cursor-team-kit) | The project's verification skill (Verification section). Without one, drive the real surface with the host's own tools: a browser tool for web UIs, the shell for CLIs and TUIs. |

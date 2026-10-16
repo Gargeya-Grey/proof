@@ -5,6 +5,15 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+### Added
+
+- Router: an Economy section for tasks larger than trivial, with five host-neutral rules: a checks ladder, review convergence (at most 4 outside review rounds), a worker contract for subagents, a model tier by work, and batched turns.
+- `tests/router-scenarios.md`: cases 25 and 26 for the Economy section.
+
+### Changed
+
+- Router: the orchestration override names the Economy worker contract, and the model override falls back to the Economy model tier. DECISIONS.md D4 says the same.
+
 ## [0.5.1] - 2026-10-12
 
 ### Added
