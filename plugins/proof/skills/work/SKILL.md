@@ -44,6 +44,9 @@ For every task larger than trivial. These rules cut cost and keep every proof st
 - **Worker contract.** A subagent does one unit with its own files, proves it with the checks for those files, and hands back once, with evidence. The main session runs the full suite, waits on CI and answers pull-request reviews. Follow-up work goes to the main session, or to a fresh subagent whose brief holds the original brief, every later directive and the prior report.
 - **Model tier by work.** When the user has no model policy and the host offers tiers, build at the middle tier, and use the strongest tier for review or after a failed attempt. Otherwise use the host's default.
 - **Batched turns.** Each turn reads the whole context again. Send independent reads and checks together in one turn, and wait only when the next step needs a result.
+- **User calls.** Decide each choice inside the task yourself, and record it in your final report, or where the user's instructions say. Ask the user only about taste (design, wording), money, an irreversible step, a legal commitment, their own account, a step they said they would do themselves, or a question that this file, or a skill it routes you to (such as `grilling`), tells you to ask. Commits, pushes, merges and posts still follow the Overrides.
+- **Refused merge.** When a merge is refused and the refusal names no specific check, review thread or approval, read the pull request's unresolved review threads, required checks and required approvals before you suspect a branch rule or ask the user.
+- **Approvals.** Point the user at an approval prompt only when a tool result shows one waiting.
 
 ## Routes
 

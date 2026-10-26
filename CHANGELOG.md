@@ -5,6 +5,11 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+### Added
+
+- Router: three Economy rules. User calls: decide each choice inside the task and record it; ask the user only about taste, money, an irreversible step, a legal commitment, their own account, a step they kept, or a question the router or a skill it routes to asks. Refused merge: when a refusal names no specific check, review thread or approval, read unresolved review threads, required checks and required approvals first. Approvals: point the user at a prompt only when a tool result shows one waiting.
+- `tests/router-scenarios.md`: cases 27 to 29 for those rules.
+
 ## [0.6.0] - 2026-10-16
 
 ### Added
