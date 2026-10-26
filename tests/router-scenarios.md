@@ -42,6 +42,9 @@ Using only that router file, answer each case in one line: the file, skill or se
 24. Host: Claude Code. You are inside pstack's create-verification-skill, and its last step tells you to point the user at `/maintain-verification-skill`. What do you tell the user?
 25. You are a subagent. Your brief: "Add a --limit flag to the CLI's list command." The code is written. What do you run before you hand back, and do you wait for CI?
 26. Host: Codex. `.agents/skills/verify-web/SKILL.md` exists. Your pull request has had 4 review rounds from an outside reviewer bot. Round 4 left one security finding and two style findings. What do you fix, and do you request another review?
+27. Host: Claude Code. The project's verification skill exists, and the user's instruction files say nothing about what to ask. While you build an upload retry, you must pick one of two retry delays. "Build the retry and finish the task."
+28. Host: Codex. Checks are green, but `gh pr merge 12 --squash` fails with "the base branch policy prohibits the merge". What do you do first?
+29. Host: Claude Code. You suspect a permission prompt waits on the user's screen, but no tool result shows one. Do you tell the user to press Allow?
 ```
 
 ## Expected
@@ -74,6 +77,9 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 24 | Tell the user to ask in words: "audit the verification skill" | No | No |
 | 25 | Economy, worker contract: the checks for the files you changed, then hand back once with evidence. No CI wait: CI belongs to the main session. | No | No |
 | 26 | Economy, review convergence: fix the security finding in one last push; answer the style findings with a reason or an issue link; request no further review. | No | No (Overrides: only when the user or their instructions ask) |
+| 27 | Economy, user calls: pick the delay yourself and record it in the final report | No | No |
+| 28 | Economy, refused merge: read the pull request's unresolved review threads, required checks and required approvals | No | No |
+| 29 | Economy, approvals: no; no tool result shows a prompt waiting | No | No |
 
 ## Install cases
 
