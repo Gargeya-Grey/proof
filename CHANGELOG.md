@@ -7,8 +7,17 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ### Added
 
+- Router: a Routes row for an escape (a defect in work called done): pstack's `correct` for that class from its first report, a census before the fix, the check that should have found it, and `principle-attack-the-premise` when the class comes back after a class fix. DECISIONS.md D16.
+- Router: a Routes row for a context summary: read the hub again, and every file that the summary or the task list names.
+- `tests/test_plugin.py`: every vendored pstack skill needs a pointer in skill or reference text (whole names only; recorded exceptions: `blast-radius`, `recall`), the hub must name every principle, the router must enter the hub, the escape route must read `correct` and the premise principle with no negation, and the `work` description must carry the late triggers. The tests read no Markdown structure: the link test reads every line, a file with a fence marker is not a pointer source (15 vendored files are listed), and the router holds no fence. The wording tests check wording, not meaning (DECISIONS.md D16).
+- `tests/router-scenarios.md`: cases 30 to 36, and a prompt that asks for the first actions in order.
 - Router: three Economy rules. User calls: decide each choice inside the task and record it; ask the user only about taste, money, an irreversible step, a legal commitment, their own account, a step they kept, or a question the router or a skill it routes to asks. Refused merge: when a refusal names no specific check, review thread or approval, read unresolved review threads, required checks and required approvals first. Approvals: point the user at a prompt only when a tool result shows one waiting.
 - `tests/router-scenarios.md`: cases 27 to 29 for those rules.
+
+### Changed
+
+- Router: the `work` description says to load it again after a context summary and on every escape (about 100 more always-on characters).
+- Router: an escape is never trivial, and in review convergence a defect in work called done takes the escape route.
 
 ## [0.6.0] - 2026-10-16
 

@@ -212,33 +212,195 @@ class LayoutTests(unittest.TestCase):
             self.assertFalse((PLUGIN / name).exists(), f"{name} must not exist at the plugin root")
 
 
-def _strip_code(text):
-    text = re.sub(r"(?ms)^(```|~~~).*?^\1[^\n]*$", "", text)
-    return re.sub(r"`[^`\n]*`", "", text)
-
-
 LINK_RE = re.compile(r"!?\[[^\]\n]*\]\(\s*<?([^)\s>]+)>?(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)")
 REFDEF_RE = re.compile(r"(?m)^\s{0,3}\[[^\]\n]+\]:\s*<?(\S+?)>?(?:\s+.*)?$")
+
+
+# A vendored pstack skill is reached only through a pointer in other text (DECISIONS.md D16).
+# These have no pointer anywhere; an agent reaches them only when the user names them.
+UNREACHED_PSTACK = {
+    "blast-radius": "no pointer upstream; the router has no route for it yet",
+    "recall": "no pointer upstream; the router has no route for it yet",
+}
+
+# No test here reads Markdown. A line with three backticks or three tildes is a fence marker, wherever
+# it sits (in a list, in a quote, indented, with an info string), and the tests never decide which lines
+# are code. So: (1) the link test reads every line, and (2) a file with a fence marker is not a source
+# of pointers. These files have markers today (paths relative to plugins/proof). A marker in any other
+# file, or a file in this set with none, fails test_07_every_vendored_pstack_skill_has_a_pointer.
+# Limit: a pointer that exists only in one of these files is not seen (DECISIONS.md D16).
+FENCED_TEXT = {
+    "references/pstack/skills/how/references/explainer-prompt.md",
+    "references/pstack/skills/interrogate/references/reviewer-prompt.md",
+    "references/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+    "references/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+    "references/pstack/skills/poteto-mode/references/bugbot-triage.md",
+    "references/pstack/skills/show-me-your-work/SKILL.md",
+    "references/pstack/skills/typescript-best-practices/references/patterns.md",
+    "references/pstack/skills/why/references/sources/code-archaeology.md",
+    "references/pstack/skills/why/references/sources/databricks.md",
+    "references/pstack/skills/why/references/sources/datadog.md",
+    "references/pstack/skills/why/references/sources/sentry.md",
+    "skills/codebase-design/SKILL.md",
+    "skills/grilling/SKILL.md",
+    "skills/tdd/mocking.md",
+    "skills/tdd/tests.md",
+}
+
+
+def _has_fence(text):
+    return "```" in text or "~~~" in text
+
+
+def _pointer_texts():
+    """{path relative to plugins/proof: text} for every file an agent reads and follows.
+    NOTICE.md and LICENSES/ list every skill as attribution, so they are not sources."""
+    sources = [q for base in (SKILLS, PLUGIN / "references") for pattern in ("*.md", "*.yaml") for q in base.rglob(pattern)]
+    return {q.relative_to(PLUGIN).as_posix(): q.read_text(encoding="utf-8") for q in sources}
+
+
+def _mentions(text, name):
+    """A pointer an agent follows: a bold name, a slash name or a backticked name, or a skills/<name>/ path.
+    The whole name must match (`/correct-obsolete` is not `correct`)."""
+    n = re.escape(name)
+    return re.search(rf"\*\*{n}\*\*|/{n}(?![\w-])|`{n}`|skills/{n}/", text)
+
+
+def _reach_problems(texts):
+    """Problems with the pointer texts: a fence marker in an unlisted file, a stale listing, or a vendored
+    skill with no pointer (other than the recorded exceptions). Returns a list of messages."""
+    problems = [f"{rel}: has a fence marker and is not in FENCED_TEXT" for rel, t in sorted(texts.items())
+                if _has_fence(t) and rel not in FENCED_TEXT]
+    problems += [f"{rel}: is in FENCED_TEXT but has no fence marker" for rel in sorted(FENCED_TEXT)
+                 if rel in texts and not _has_fence(texts[rel])]
+    sources = {rel: t for rel, t in texts.items() if not _has_fence(t)}
+    leaves = PLUGIN / "references" / "pstack" / "skills"
+    unreached = set()
+    for leaf in sorted(d for d in leaves.iterdir() if d.is_dir()):
+        name = leaf.name
+        if name.startswith("principle-") or name == "poteto-mode":
+            continue  # poteto-mode's Principles list names each by title; the router names poteto-mode
+        own = leaf.relative_to(PLUGIN).as_posix() + "/"
+        if not any(_mentions(t, name) for rel, t in sources.items() if not rel.startswith(own)):
+            unreached.add(name)
+    if unreached != set(UNREACHED_PSTACK):
+        problems.append(f"unreached vendored skills {sorted(unreached)} differ from UNREACHED_PSTACK; "
+                        "route the skill, or record it there")
+    return problems
+
+
+class ReachTests(unittest.TestCase):
+    def test_07_every_vendored_pstack_skill_has_a_pointer(self):
+        self.assertEqual(_reach_problems(_pointer_texts()), [])
+
+    def test_07_pointer_matching_rejects_near_names(self):
+        self.assertIsNone(_mentions("see /correct-obsolete", "correct"))
+        self.assertIsNotNone(_mentions("read `references/pstack/skills/correct/SKILL.md`", "correct"))
+        self.assertIsNotNone(_mentions("the **how** skill", "how"))
+
+    def test_07_mutation_a_example_pointer_does_not_replace_a_real_one(self):
+        """Mutation A: the only pointer to typescript-best-practices is deleted, and the name stays only
+        inside a fenced example whose closing line has four spaces of indent (CommonMark does not close the
+        block there). The guard needs no parser: a fence marker anywhere in an unlisted file fails."""
+        rel = "references/pstack/skills/principle-type-system-discipline/SKILL.md"
+        texts = _pointer_texts()
+        self.assertEqual(_reach_problems(texts), [], "the real text must pass")
+        pointer = "For TypeScript syntax, see the `typescript-best-practices` skill."
+        self.assertIn(pointer, texts[rel])
+        for example in ("Example:\n```\nsee the `typescript-best-practices` skill\n    ```\n",
+                        "- item\n  ```\n  `typescript-best-practices`\n  ```\n"):
+            mutated = dict(texts, **{rel: texts[rel].replace(pointer, "") + example})
+            self.assertTrue(_mentions(mutated[rel], "typescript-best-practices"), "a bare search would be fooled")
+            problems = _reach_problems(mutated)
+            self.assertTrue(any(rel in p and "fence marker" in p for p in problems), problems)
+        # Deleting the pointer and adding nothing is caught too.
+        gone = dict(texts, **{rel: texts[rel].replace(pointer, "")})
+        self.assertTrue(any("unreached" in p for p in _reach_problems(gone)))
+
+    def test_07_router_has_no_code_fence(self):
+        """The router is the one file of this plugin that is not vendored. It holds no fenced block, so
+        every line of it is prose that an agent follows."""
+        for q in sorted((SKILLS / "work").rglob("*")):
+            if q.is_file():
+                with self.subTest(file=q.relative_to(ROOT).as_posix()):
+                    self.assertFalse(_has_fence(q.read_bytes().decode("utf-8", errors="replace")))
+
+    def test_07_router_enters_the_hub(self):
+        text = (SKILLS / "work" / "SKILL.md").read_text(encoding="utf-8")
+        hub = "`references/pstack/skills/poteto-mode/SKILL.md`"
+        self.assertIn(f"- Anything larger: read {hub} in full", text, "the size rule must send larger tasks to the hub")
+        summary_row = [line for line in text.splitlines() if line.startswith("| Continue after a context summary")]
+        self.assertEqual(len(summary_row), 1, "the router needs one context-summary route")
+        self.assertIn(hub, summary_row[0])
+
+    def test_07_router_routes_escapes(self):
+        """The wording of the route: the required sentences are present and the listed negations are absent.
+        It does not check that the route means the right thing; tests/router-scenarios.md checks what a
+        small model does with it (DECISIONS.md D16)."""
+        text = (SKILLS / "work" / "SKILL.md").read_text(encoding="utf-8")
+        rows = [line for line in text.splitlines() if line.startswith("| Fix an escape")]
+        self.assertEqual(len(rows), 1, "the router needs one escape route")
+        route = rows[0].split(" | ", 1)[1]
+        sentences = [x.strip() for x in re.split(r"(?<=\.) ", route)]
+        self.assertTrue(sentences[0].startswith("Read `references/pstack/skills/correct/SKILL.md` and apply it"),
+                        "the route must start by reading correct")
+        self.assertIn("Find every instance of the class before you fix one, and add the check of your own that should have found it.",
+                      sentences)
+        premise = [x for x in sentences if "principle-attack-the-premise" in x]
+        self.assertEqual(len(premise), 1)
+        self.assertTrue(premise[0].startswith("When the same class comes back after your class fix, read "))
+        self.assertTrue(premise[0].endswith(" before the next fix."))
+        for word in (" not ", "never", "ignore", "skip", "only the reported", "instead"):
+            self.assertNotIn(word, f" {route.lower()} ", f"the escape route must not contain {word!r}")
+        summary = [line for line in text.splitlines() if line.startswith("| Continue after a context summary")]
+        self.assertTrue(summary[0].split(" | ", 1)[1].startswith(
+            "Before the next step, read `references/pstack/skills/poteto-mode/SKILL.md` again, and every playbook, principle and skill file"))
+
+    def test_07_late_triggers_are_always_visible(self):
+        desc = frontmatter(SKILLS / "work" / "SKILL.md")[0].get("description", "")
+        self.assertIn("after a context summary", desc)
+        self.assertIn("escape", desc)
+
+    def test_07_every_principle_is_named_by_the_hub(self):
+        hub = (PLUGIN / "references" / "pstack" / "skills" / "poteto-mode" / "SKILL.md").read_text(encoding="utf-8")
+        titles = {re.sub(r"[^a-z0-9-]", "", t.lower().replace(" ", "-"))
+                  for t in re.findall(r"^- \*\*([^*]+?)\.?\*\*", hub, re.M)}
+        titles |= set(re.findall(r"\*\*principle-([a-z0-9-]+)\*\*", hub))
+        for leaf in sorted((PLUGIN / "references" / "pstack" / "skills").glob("principle-*")):
+            with self.subTest(principle=leaf.name):
+                self.assertIn(leaf.name.removeprefix("principle-"), titles)
+
+
+def _broken_links(text, base_dir, rel_md=""):
+    """Relative link targets in text that do not resolve from base_dir. Every line is read, fenced or not:
+    a link in a code example is a link too, and an example that is not a file goes in BROKEN_UPSTREAM."""
+    bad = []
+    for t in LINK_RE.findall(text) + REFDEF_RE.findall(text):
+        if re.match(r"^(https?:|mailto:|#)", t, re.I) or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", t):
+            continue
+        path = t.split("#", 1)[0].split("?", 1)[0]
+        if not path or (rel_md, t) in BROKEN_UPSTREAM:
+            continue
+        if not (base_dir / path).resolve().exists():
+            bad.append(t)
+    return bad
 
 
 class LinkTests(unittest.TestCase):
     def test_07_relative_links_resolve(self):
         bad = []
         for md in sorted(PLUGIN.rglob("*.md")):
-            text = _strip_code(md.read_bytes().decode("utf-8", errors="replace"))
-            targets = LINK_RE.findall(text) + REFDEF_RE.findall(text)
-            for t in targets:
-                if re.match(r"^(https?:|mailto:|#)", t, re.I) or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", t):
-                    continue
-                path = t.split("#", 1)[0].split("?", 1)[0]
-                if not path:
-                    continue
-                rel_md = md.relative_to(PLUGIN).as_posix()
-                if (rel_md, t) in BROKEN_UPSTREAM:
-                    continue
-                if not (md.parent / path).resolve().exists():
-                    bad.append(f"{md.relative_to(ROOT).as_posix()} -> {t}")
+            text = md.read_bytes().decode("utf-8", errors="replace")
+            rel_md = md.relative_to(PLUGIN).as_posix()
+            bad += [f"{md.relative_to(ROOT).as_posix()} -> {t}" for t in _broken_links(text, md.parent, rel_md)]
         self.assertEqual(bad, [], "broken relative links:\n" + "\n".join(bad))
+
+    def test_07_mutation_b_broken_link_after_a_fence_is_found(self):
+        """Mutation B: a broken link follows a fenced block inside a list item. Fences are not parsed,
+        so every line is read."""
+        self.assertEqual(_broken_links("- item\n  ```\n  code\n  ```\n\n[broken](missing-file.md)\n", ROOT), ["missing-file.md"])
+        self.assertEqual(_broken_links("> ```\n> code\n\n[broken](missing-file.md)\n", ROOT), ["missing-file.md"])
+        self.assertEqual(_broken_links("[ok](README.md)\n- item\n  ```\n  code\n  ```\n", ROOT), [], "the real text passes")
 
 
 if __name__ == "__main__":
