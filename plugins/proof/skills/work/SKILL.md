@@ -1,6 +1,6 @@
 ---
 name: work
-description: Verification-first routine for engineering work beyond a trivial edit - build a feature, fix a bug, refactor, investigate how code works, tune performance, review, or ship. Load it before you plan or edit. It routes to the pstack playbooks and principles stored in this plugin.
+description: Verification-first routine for engineering work beyond a trivial edit - build a feature, fix a bug, refactor, investigate how code works, tune performance, review, or ship. Load it before you plan or edit. It routes to the pstack playbooks and principles stored in this plugin. Load it again after a context summary, and on every escape, a defect found in work you called done.
 ---
 
 # Work
@@ -16,7 +16,7 @@ When two of them disagree, follow the higher one and say so in one line.
 
 ## Size the task first
 
-- Trivial (one obvious change, two files or fewer, no risk the host's rules name): do not load pstack. Make the change and prove it with the cheapest real check.
+- Trivial (one obvious change, two files or fewer, no risk the host's rules name): do not load pstack. Make the change and prove it with the cheapest real check. An escape (Routes) is never trivial: it always takes its route.
 - Anything larger: read `references/pstack/skills/poteto-mode/SKILL.md` in full and follow it, with the Verification section, the path rule, the overrides and the host map below. If `../../references/pstack/skills/poteto-mode/SKILL.md`, counted from this file, does not exist, this skill was installed without the rest of its plugin. Tell the user to install `proof` with the host's plugin command, or on other hosts by cloning its repository (README at https://github.com/Gargeya-Grey/proof). Then continue with Verification steps 1 and 2 and the routes to the installed skills (`tdd`, `grilling`, `codebase-design`, `writing-for-agents`), and skip every file under `references/`.
 
 ## Verification
@@ -40,7 +40,7 @@ Done when the change is proved through the verification skill, or the final repo
 For every task larger than trivial. These rules cut cost and keep every proof step. The user's rules come first (Authority), and a push follows the Overrides.
 
 - **Checks ladder.** While you edit, run the checks for the files you changed. Use the verification skill wherever Verification and the playbook ask, for example a reproduction or one unit's proof. The main session runs the full suite once before each push, and the full proof once at the end.
-- **Review convergence.** An outside reviewer is a review bot or a person on the pull request, not a subagent you start. A round is one review of one pushed head. All outside reviewers together get at most 4 rounds, and each round gets at most one push. Rounds 1 and 2: fix every finding, and the same fault in every other place in the change. From round 3: fix defects only (wrong behaviour, a crash, a broken build or test, data loss, security, privacy, a doc the code contradicts), and answer the rest with a reason or an issue link. After round 4, deliver those fixes in one push, request no further review, and finish.
+- **Review convergence.** An outside reviewer is a review bot or a person on the pull request, not a subagent you start. A round is one review of one pushed head. A defect in work you called done is an escape: it takes the escape route in Routes. All outside reviewers together get at most 4 rounds, and each round gets at most one push. Rounds 1 and 2: fix every finding, and the same fault in every other place in the change. From round 3: fix defects only (wrong behaviour, a crash, a broken build or test, data loss, security, privacy, a doc the code contradicts), and answer the rest with a reason or an issue link. After round 4, deliver those fixes in one push, request no further review, and finish.
 - **Worker contract.** A subagent does one unit with its own files, proves it with the checks for those files, and hands back once, with evidence. The main session runs the full suite, waits on CI and answers pull-request reviews. Follow-up work goes to the main session, or to a fresh subagent whose brief holds the original brief, every later directive and the prior report.
 - **Model tier by work.** When the user has no model policy and the host offers tiers, build at the middle tier, and use the strongest tier for review or after a failed attempt. Otherwise use the host's default.
 - **Batched turns.** Each turn reads the whole context again. Send independent reads and checks together in one turn, and wait only when the next step needs a result.
@@ -55,6 +55,8 @@ Each task type below starts here, also when a pstack playbook is already running
 | Task | First stop |
 |---|---|
 | Debug a defect | pstack's Bug fix playbook (`playbooks/bug-fix.md`). Prove the fix with the `tdd` skill. |
+| Fix an escape: a defect in work you called done, found by a reviewer, a test, CI or the user | Read `references/pstack/skills/correct/SKILL.md` and apply it to that class now, from its first report. Find every instance of the class before you fix one, and add the check of your own that should have found it. When the same class comes back after your class fix, read `references/pstack/skills/principle-attack-the-premise/SKILL.md` before the next fix. A stop rule in your instruction files comes first (Authority). |
+| Continue after a context summary (compaction) | Before the next step, read `references/pstack/skills/poteto-mode/SKILL.md` again, and every playbook, principle and skill file that the summary or your task list names. The host may bring this file back after a summary; the files it sent you to come back only when you read them again. |
 | Research how code works or why it is built that way | pstack's Investigation playbook (`playbooks/investigation.md`), with pstack's how and why skills. |
 | Review a diff, branch or PR | The host's own review skill when the host lists one that reports findings without editing (for example Claude Code `code-review` without `--fix`, Codex `review-agent`, Grok `review`). Otherwise review it yourself, or with one fresh reviewer subagent. Report findings. Edit files, post comments or open a draft review on the PR only when the user asks. |
 | Create, repair or audit the project's verification skill | Find it with Verification step 1. None: `references/pstack/skills/create-verification-skill/SKILL.md`. One: `references/pstack/skills/maintain-verification-skill/SKILL.md`. |

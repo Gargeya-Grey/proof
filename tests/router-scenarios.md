@@ -5,7 +5,7 @@ These cases test the decisions of the router (`plugins/proof/skills/work/SKILL.m
 ## How to run
 
 1. From the repository root, send the prompt below to the model. Allow file reads only. In Claude Code: save the prompt to a file, then run `claude -p --model <small model> --allowedTools Read,Glob < <prompt file>`.
-2. Compare each answer with the Expected table. Your instruction files and an installed copy of `proof` also load and can change an answer: when one differs, check those first, before you change the router.
+2. Compare each answer with the Expected table. An answer matches only when it names every item of the Route cell, including the first actions in their order. Your instruction files and an installed copy of `proof` also load and can change an answer: when one differs, check those first, before you change the router.
 
 Done when every answer matches its Expected row. When a case fails, fix the router wording, not the case, and run all cases again.
 
@@ -14,7 +14,7 @@ Done when every answer matches its Expected row. When a case fails, fix the rout
 ```
 Read the file plugins/proof/skills/work/SKILL.md. Read no other file and run no command.
 
-Using only that router file, answer each case in one line: the file, skill or section that the Routes table, the Verification section or the Economy section sends you to (a path relative to plugins/proof, or a skill name; a task larger than trivial also reads poteto-mode first, so do not list poteto-mode), whether you ask the user anything (quote it, or say "no"), and whether you make a git commit (yes or no).
+Using only that router file, answer each case in one line: the file, skill or section that the Routes table, the Verification section or the Economy section sends you to (a path relative to plugins/proof, or a skill name; a task larger than trivial also reads poteto-mode first, so do not list poteto-mode), whether you ask the user anything (quote it, or say "no"), whether you make a git commit (yes or no), and your first actions in order (for example a file to read again, a census of every instance of a defect class, or a check that you add).
 
 1. Host: Claude Code. "Pick up where the last agent stopped on this branch."
 2. Host: Claude Code. "Pause now, I am going offline. Someone else continues tomorrow."
@@ -41,10 +41,17 @@ Using only that router file, answer each case in one line: the file, skill or se
 23. Host: Claude Code. The host's instruction files name `migration` as a risk. "Change one default value in migrations/0042_add_index.sql."
 24. Host: Claude Code. You are inside pstack's create-verification-skill, and its last step tells you to point the user at `/maintain-verification-skill`. What do you tell the user?
 25. You are a subagent. Your brief: "Add a --limit flag to the CLI's list command." The code is written. What do you run before you hand back, and do you wait for CI?
-26. Host: Codex. `.agents/skills/verify-web/SKILL.md` exists. Your pull request has had 4 review rounds from an outside reviewer bot. Round 4 left one security finding and two style findings. What do you fix, and do you request another review?
+26. Host: Codex. `.agents/skills/verify-web/SKILL.md` exists. You called the work done before the first review. Your pull request has had 4 review rounds from an outside reviewer bot. Round 4 left one security finding and two style findings. What do you fix, and do you request another review?
 27. Host: Claude Code. The project's verification skill exists, and the user's instruction files say nothing about what to ask. While you build an upload retry, you must pick one of two retry delays. "Build the retry and finish the task."
 28. Host: Codex. Checks are green, but `gh pr merge 12 --squash` fails with "the base branch policy prohibits the merge". What do you do first?
 29. Host: Claude Code. You suspect a permission prompt waits on the user's screen, but no tool result shows one. Do you tell the user to press Allow?
+30. Host: Claude Code. You said the CLI change was done. A reviewer subagent then finds that `rm` crashes when its output pipe is closed. "Fix the review finding."
+31. Host: Codex. You called the work done before the review. Round 2 of an outside review on your pull request found one wrong-behaviour defect, and one naming nit in `parse.rs`. The same name is also used in `emit.rs`, which the review did not mention. What do you do with each?
+32. Host: Claude Code. The conversation continues from a summary of earlier context, in the middle of pstack's Bug fix playbook. Which files do you read again before the next step? List poteto-mode too, if the router sends you to it.
+33. Host: Grok. You called the work done. The same fault class that a reviewer found last round comes back in this round's review, after your class fix. What do you read before the next fix?
+34. Host: Claude Code. You fixed a one-word typo in README and called it done. The user replies that your fix broke the link on the same line. Is this a trivial task?
+35. Host: Claude Code. One review of work you called done reports the same defect in three files. No earlier report showed this class. What do you do?
+36. Host: Codex. Your pull request is a draft, and you have not called the work done. An outside reviewer finds a wrong-behaviour defect in it. Is this an escape, and what do you do?
 ```
 
 ## Expected
@@ -76,10 +83,17 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 23 | Not trivial (the file carries a risk the host names): poteto-mode and the matching playbook | Only the verification question, when no `verify-*` exists | No |
 | 24 | Tell the user to ask in words: "audit the verification skill" | No | No |
 | 25 | Economy, worker contract: the checks for the files you changed, then hand back once with evidence. No CI wait: CI belongs to the main session. | No | No |
-| 26 | Economy, review convergence: fix the security finding in one last push; answer the style findings with a reason or an issue link; request no further review. | No | No (Overrides: only when the user or their instructions ask) |
+| 26 | Economy, review convergence: the security finding is a defect, so it takes the Routes escape route, fixed in one last push; answer the style findings with a reason or an issue link; request no further review. | No | No (Overrides: only when the user or their instructions ask) |
 | 27 | Economy, user calls: pick the delay yourself and record it in the final report | No | No |
 | 28 | Economy, refused merge: read the pull request's unresolved review threads, required checks and required approvals | No | No |
 | 29 | Economy, approvals: no; no tool result shows a prompt waiting | No | No |
+| 30 | Routes, escape: first `references/pstack/skills/correct/SKILL.md`, applied to that class now. Then a census of every instance of the class before the fix, and a check of your own that should have found it. | No | No |
+| 31 | Economy, review convergence: fix both. The defect is an escape: the Routes escape row, so its fix covers the whole class. The nit: fix it in `parse.rs` and in `emit.rs` (the same fault in every other place). | No | No |
+| 32 | Routes, context summary: first `references/pstack/skills/poteto-mode/SKILL.md` (the hub), then `references/pstack/skills/poteto-mode/playbooks/bug-fix.md`, and every other playbook, principle and skill file that the summary or the task list names. | No | No |
+| 33 | Routes, escape, the same class after a class fix: `references/pstack/skills/principle-attack-the-premise/SKILL.md`, read before the next fix | No | No |
+| 34 | Not trivial: an escape always takes its route. First `references/pstack/skills/correct/SKILL.md`, applied to that class, then a census of the class | No | No |
+| 35 | Routes, escape: first `references/pstack/skills/correct/SKILL.md`, applied to that class now. Then a census of every instance of the class, not only the three files and not only this change. Fix all of them, and add a check of your own that should have found it. | No | No |
+| 36 | Not an escape (not work you called done). Economy, review convergence: fix it, and the same fault in every other place in the change | No | No |
 
 ## Install cases
 
