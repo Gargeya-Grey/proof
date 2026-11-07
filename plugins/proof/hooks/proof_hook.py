@@ -208,17 +208,29 @@ def is_hub_path(value):
 HUB_SHARE = 0.95  # share of the hub's lines that a tool response must show
 
 
+def letters(text):
+    """Only the ASCII letters and digits of a text, lower case. A shell that decodes the UTF-8 hub
+    with another code page (Windows PowerShell 5.1 `Get-Content` without `-Encoding utf8`) garbles
+    every non-ASCII character but keeps these, so the comparison survives it."""
+    return "".join(c for c in text.lower() if c.isascii() and c.isalnum())
+
+
+def hub_lines():
+    """The hub's non-empty lines as letters(), or None when the hub cannot be read."""
+    try:
+        with open(HUB, "r", encoding="utf-8", errors="replace") as handle:
+            return [k for k in (letters(line) for line in handle) if k]
+    except OSError:
+        return None
+
+
 def shows_hub(texts):
     """True when the response texts show nearly every non-empty line of the hub, so the agent has
     the hub in context: a `test -f`, a `head` or a failed command shows too little."""
-    try:
-        with open(HUB, "r", encoding="utf-8", errors="replace") as handle:
-            lines = [line.strip() for line in handle if line.strip()]
-    except OSError:
-        return False
+    lines = hub_lines()
     if not lines:
         return False
-    blob = "\n".join(texts)
+    blob = letters("\n".join(texts))
     found = sum(1 for line in lines if line in blob)
     return found >= HUB_SHARE * len(lines)
 
@@ -366,6 +378,8 @@ def do_session_start(data):
     try:
         if used is None:
             raise Fault("no readable transcript, so it is unknown whether proof was in use")
+        if not hub_lines():
+            raise Fault("the hub cannot be read: %s" % HUB)
         path = marker_path(session_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         sweep(path.parent)
@@ -424,6 +438,15 @@ def do_gate(data):
     path = marker_path(session_id_of(data))
     if not marker_is_live(path):
         return
+    if not hub_lines():
+        # The hub cannot be read (removed, or an update moved it): the agent could never open the
+        # gate by following the deny reason, so fail open and drop the marker.
+        warn("the hub cannot be read: %s; gate released" % HUB)
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        return
     if name in SHELL_TOOLS:
         parts = []
         flatten(data.get("tool_input"), parts)
@@ -432,7 +455,8 @@ def do_gate(data):
     reason = (
         "proof: the context was summarized and the pstack hub was not read again. "
         "File edits and shell commands wait until you read this file in full (the Read tool, "
-        "or one shell command that prints the whole file): %s "
+        "or one shell command that prints the whole file; in PowerShell use "
+        "`Get-Content -Raw -Encoding utf8`): %s "
         "Then repeat the call. Also load the `work` skill again and read the files under "
         "\"Active proof files\" in the summary." % HUB
     )

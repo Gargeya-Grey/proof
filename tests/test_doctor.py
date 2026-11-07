@@ -78,13 +78,24 @@ class DoctorTests(unittest.TestCase):
         transcript(self.home, "s1", str(live / "skills" / "work").replace("/", "\\"))
         self.assertIn("same as this repository", self.run_report()[0][0])
 
-    def test_codex_newest_version_is_compared(self):
+    def test_every_codex_copy_is_compared(self):
+        """Codex does not record which version folder runs, so a stale folder is reported, not
+        hidden behind the newest one (Codex review round 3)."""
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.5.0", "# Work\n\nold\n")
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.10.0")
-        lines, _ = self.run_report()
+        lines, code = self.run_report()
         codex = next(l for l in lines if l.startswith("codex:"))
-        self.assertIn("0.10.0", codex)
-        self.assertIn("same as this repository", codex)
+        self.assertEqual(code, 1)
+        self.assertIn(str(Path("proof") / "0.5.0") + ": router DIFFERS", codex)
+        self.assertNotIn("0.10.0:", codex)
+        self.assertIn("2 copies", codex)
+
+    def test_codex_copies_that_all_match_pass(self):
+        plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "local")
+        plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.7.0")
+        lines, code = self.run_report()
+        self.assertEqual(code, 0)
+        self.assertIn("same as this repository", next(l for l in lines if l.startswith("codex:")))
 
     def test_codex_stale_copy_fails(self):
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.6.0", "# Work\n\nold\n")
@@ -96,7 +107,7 @@ class DoctorTests(unittest.TestCase):
         lines, code = self.run_report()
         self.assertEqual(code, 0)
         self.assertTrue(lines[0].startswith("claude: no proof router load found"))
-        self.assertTrue(any(l.startswith("codex: no installed and enabled proof copy") for l in lines))
+        self.assertTrue(any(l.startswith("codex: no installed proof copy") for l in lines))
 
     def test_crlf_router_counts_as_the_same(self):
         live = plugin(self.base / "crlf" / "plugins" / "proof")
@@ -129,13 +140,14 @@ class DoctorTests(unittest.TestCase):
         write(self.home / ".claude" / "projects" / "proj" / "s2.jsonl", quote + "\n")
         self.assertIn(str(real), self.run_report()[0][0])
 
-    def test_claude_disabled_plugin_is_reported_and_not_compared(self):
+    def test_claude_disabled_plugin_is_noted(self):
+        """A user-level disable is noted, not trusted: a project's settings may enable it."""
         other = plugin(self.base / "gh2" / "plugins" / "proof", "# Work\n\nold\n")
         transcript(self.home, "s1", str(other / "skills" / "work"))
         write(self.home / ".claude" / "settings.json", json.dumps({"enabledPlugins": {"proof@m": False}}))
-        lines, code = self.run_report()
-        self.assertEqual(code, 0)
-        self.assertIn("not enabled", lines[0])
+        line = self.run_report()[0][0]
+        self.assertIn("disables proof", line)
+        self.assertIn("a project's settings", line)
 
     def test_claude_line_says_when_the_load_was_seen(self):
         live = plugin(self.base / "seen" / "plugins" / "proof")
@@ -155,12 +167,12 @@ class DoctorTests(unittest.TestCase):
     def codex_config(self, text):
         write(self.home / ".codex" / "config.toml", text)
 
-    def test_codex_disabled_plugin_is_not_reported_as_running(self):
+    def test_codex_user_disable_is_noted_not_trusted(self):
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.6.0", "# Work\n\nold\n")
         self.codex_config('[plugins."proof@m"]\nenabled = false\n')
-        lines, code = self.run_report()
-        self.assertEqual(code, 0)
-        self.assertTrue(any(l.startswith("codex: no installed and enabled proof copy") for l in lines))
+        codex = next(l for l in self.run_report()[0] if l.startswith("codex:"))
+        self.assertIn("a project's .codex/config.toml may", codex)
+        self.assertIn("DIFFERS", codex)
 
     def test_codex_enabled_marketplace_is_chosen(self):
         plugin(self.home / ".codex" / "plugins" / "cache" / "a" / "proof" / "0.9.0", "# Work\n\nold\n")
@@ -170,12 +182,25 @@ class DoctorTests(unittest.TestCase):
         self.assertIn(str(Path("b") / "proof" / "0.1.0"), codex)
         self.assertIn("same as this repository", codex)
 
-    def test_codex_local_and_numeric_folders_compare(self):
+    def test_codex_local_copy_is_compared_too(self):
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "local", "# Work\n\nold\n")
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "0.7.0")
         codex = next(l for l in self.run_report()[0] if l.startswith("codex:"))
-        self.assertIn("0.7.0", codex)
-        self.assertIn("2 version folders", codex)
+        self.assertIn(str(Path("proof") / "local") + ": router DIFFERS", codex)
+
+    def test_host_folders_follow_the_hosts_environment(self):
+        claude, codex = self.base / "cfg-claude", self.base / "cfg-codex"
+        saved = {k: os.environ.get(k) for k in ("CLAUDE_CONFIG_DIR", "CODEX_HOME")}
+        try:
+            os.environ["CLAUDE_CONFIG_DIR"], os.environ["CODEX_HOME"] = str(claude), str(codex)
+            self.assertEqual(doctor.host_dirs(None), (claude, codex))
+            self.assertEqual(doctor.host_dirs(self.home), (self.home / ".claude", self.home / ".codex"))
+        finally:
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
 
 
 if __name__ == "__main__":

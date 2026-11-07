@@ -9,8 +9,13 @@ the host's own record:
 
 - Claude Code: the latest "Base directory for this skill: ...work" load event (by its timestamp) in
   ~/.claude/projects transcripts, the folder the host printed when it loaded the router.
-- Codex: the proof plugin enabled in ~/.codex/config.toml, and its newest version folder under
-  ~/.codex/plugins/cache/<marketplace>/proof/, the copy Codex installs and runs.
+- Codex: every installed copy under <codex home>/plugins/cache/<marketplace>/proof/<version>/
+  (`local` for a local plugin), narrowed to the marketplace that config.toml enables. Codex does
+  not record which version folder runs, so each copy is compared.
+
+The host folders are CLAUDE_CONFIG_DIR and CODEX_HOME when set, as the hosts read them, else
+~/.claude and ~/.codex. A user-level disable is noted, not trusted: a project's settings can
+enable a plugin.
 
 Each line compares that copy's router with this repository's router (same, or differs) and ends
 with what to do. Exit code 1 when a host loads a copy whose router differs from the repository's.
@@ -70,11 +75,11 @@ def _skill_loads(line):
     return found
 
 
-def claude_enabled(home):
+def claude_enabled(claude_dir):
     """True or False from enabledPlugins in ~/.claude/settings.json for the proof@<marketplace> keys,
     None when the file cannot be read or names no proof plugin."""
     try:
-        data = json.loads((Path(home) / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        data = json.loads((Path(claude_dir) / "settings.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
     plugins = data.get("enabledPlugins") if isinstance(data, dict) else None
@@ -86,11 +91,11 @@ def claude_enabled(home):
     return any(v is True for v in values)
 
 
-def claude_loaded_root(home):
+def claude_loaded_root(claude_dir):
     """(plugin root, transcript, timestamp) of the newest proof router load that Claude Code
     recorded, or None. Newest means the latest load event (its timestamp), not the latest-written
     transcript: an old session that is still running writes its transcript last but loaded long ago."""
-    projects = Path(home) / ".claude" / "projects"
+    projects = Path(claude_dir) / "projects"
     if not projects.is_dir():
         return None
     files = []
@@ -135,10 +140,10 @@ def _version_key(name):
     return (1, int(m.group(1)), int(m.group(2)), int(m.group(3))) + tail
 
 
-def codex_enabled(home):
+def codex_enabled(codex_dir):
     """Marketplace names whose proof plugin Codex has enabled, from ~/.codex/config.toml
     ([plugins."proof@<marketplace>"] enabled = true). None when the file cannot be read."""
-    path = Path(home) / ".codex" / "config.toml"
+    path = Path(codex_dir) / "config.toml"
     try:
         text = path.read_text(encoding="utf-8")
     except OSError:
@@ -158,47 +163,62 @@ def codex_enabled(home):
         return None
 
 
-def codex_installed_root(home):
-    """(copy, note) for the proof copy Codex runs, or None. Codex records which plugin is enabled in
-    config.toml and keeps the installed files in cache/<marketplace>/proof/<version>/. When one
-    marketplace holds several version folders, the newest is taken, and the note says so."""
-    cache = Path(home) / ".codex" / "plugins" / "cache"
+def codex_copies(codex_dir):
+    """(copies, notes) for the proof copies Codex may run. Codex keeps installed files in
+    cache/<marketplace>/proof/<version>/ (`local` for a local plugin) and records the enabled plugin
+    in config.toml, but not which version folder runs. So every candidate is returned, and the
+    caller compares each one; nothing is guessed from folder names."""
+    cache = Path(codex_dir) / "plugins" / "cache"
     if not cache.is_dir():
-        return None
-    enabled = codex_enabled(home)
-    roots = [p for p in cache.glob("*/proof/*") if (p / ROUTER_REL).is_file()]
-    if enabled is not None:
-        roots = [p for p in roots if p.parent.parent.name in enabled]
-    if not roots:
-        return None
-    best = max(roots, key=lambda p: (_version_key(p.name), p.parent.parent.name))
-    same = [p for p in roots if p.parent == best.parent]
+        return [], []
+    roots = sorted((p for p in cache.glob("*/proof/*") if (p / ROUTER_REL).is_file()),
+                   key=lambda p: (p.parent.parent.name, _version_key(p.name)), reverse=True)
+    enabled = codex_enabled(codex_dir)
     notes = []
     if enabled is None:
         notes.append("config.toml not read, so the enabled state is not checked")
-    if len(same) > 1:
-        notes.append(f"{len(same)} version folders; the newest is assumed to run")
-    return best, "; ".join(notes)
+    elif enabled:
+        chosen = [p for p in roots if p.parent.parent.name in enabled]
+        if chosen:
+            roots = chosen
+    elif roots:
+        notes.append("the user config.toml does not enable proof; a project's .codex/config.toml may (not checked)")
+    return roots, notes
+
+
+def host_dirs(home=None):
+    """(Claude Code folder, Codex folder). With a home folder (tests, --home): its .claude and
+    .codex. Without one: CLAUDE_CONFIG_DIR and CODEX_HOME when set, as the hosts themselves read
+    them, else ~/.claude and ~/.codex."""
+    if home is not None:
+        return Path(home) / ".claude", Path(home) / ".codex"
+    user = Path(os.path.expanduser("~"))
+    claude = os.environ.get("CLAUDE_CONFIG_DIR") or str(user / ".claude")
+    codex = os.environ.get("CODEX_HOME") or str(user / ".codex")
+    return Path(claude), Path(codex)
 
 
 def report(home, repo):
-    """Return (lines, exit code)."""
+    """Return (lines, exit code). home=None reads the folders the hosts use (host_dirs)."""
     want = router_digest(Path(repo) / "plugins" / "proof")
     if want is None:
         return [f"error: no router at {Path(repo) / 'plugins' / 'proof' / ROUTER_REL}"], 1
+    claude_dir, codex_dir = host_dirs(home)
     lines, code = [], 0
 
-    claude = claude_loaded_root(home)
-    enabled = claude_enabled(home)
-    if enabled is False:
-        lines.append("claude: proof is not enabled in ~/.claude/settings.json (enabledPlugins), so no copy runs")
-    elif claude is None:
-        lines.append("claude: no proof router load found in the newest transcripts (not loaded yet, or not installed)")
+    claude = claude_loaded_root(claude_dir)
+    enabled = claude_enabled(claude_dir)
+    if claude is None:
+        state = " (proof is not enabled in its settings.json)" if enabled is False else ""
+        lines.append("claude: no proof router load found in the newest transcripts "
+                     f"(not loaded yet, or not installed){state}")
     else:
         root, transcript, stamp = claude
         seen = f"last load seen {stamp or 'at an unknown time'} in {transcript.name}"
-        if enabled is None:
-            seen += "; ~/.claude/settings.json names no proof plugin, so this may be history"
+        if enabled is False:
+            seen += f"; {claude_dir / 'settings.json'} disables proof, so this may be history unless a project's settings enable it"
+        elif enabled is None:
+            seen += f"; {claude_dir / 'settings.json'} names no proof plugin, so this may be history"
         have = router_digest(root)
         if have == want:
             lines.append(f"claude: loads {root}; router same as this repository ({seen})")
@@ -211,17 +231,21 @@ def report(home, repo):
                    "run `claude plugin update proof@gargeya-grey` (a GitHub install updates only on a new version)")
             lines.append(f"claude: loads {root}; router DIFFERS from this repository ({seen}); {fix}, then start a new session")
 
-    found = codex_installed_root(home)
-    if found is None:
-        lines.append("codex: no installed and enabled proof copy found")
+    copies, notes = codex_copies(codex_dir)
+    note = f" ({'; '.join(notes)})" if notes else ""
+    if not copies:
+        lines.append(f"codex: no installed proof copy found{note}")
     else:
-        codex, note = found
-        note = f" ({note})" if note else ""
-        if router_digest(codex) == want:
-            lines.append(f"codex: runs {codex}; router same as this repository{note}")
+        differ = [c for c in copies if router_digest(c) != want]
+        if len(copies) > 1:
+            notes.append(f"{len(copies)} copies; Codex does not record which one runs, so each is compared")
+            note = f" ({'; '.join(notes)})"
+        if not differ:
+            where = copies[0] if len(copies) == 1 else ", ".join(str(c) for c in copies)
+            lines.append(f"codex: runs {where}; router same as this repository{note}")
         else:
             code = 1
-            lines.append(f"codex: runs {codex}; router DIFFERS from this repository{note}. "
+            lines.append(f"codex: {', '.join(str(c) for c in differ)}: router DIFFERS from this repository{note}. "
                          "Run `codex plugin add proof@gargeya-grey`, then start a new session")
 
     lines.append("grok: reads Claude Code's plugin settings, so it loads the copy on the claude line (DECISIONS.md D12)")
@@ -231,7 +255,9 @@ def report(home, repo):
 def main(argv):
     p = argparse.ArgumentParser(prog="doctor.py", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--home", default=os.path.expanduser("~"), help="home folder to inspect (for tests)")
+    p.add_argument("--home", default=None,
+                   help="home folder to inspect (for tests); default: the folders the hosts use, "
+                        "with CLAUDE_CONFIG_DIR and CODEX_HOME")
     p.add_argument("--repo", default=str(ROOT), help="repository root (default: this repository)")
     args = p.parse_args(argv[1:])
     lines, code = report(args.home, args.repo)

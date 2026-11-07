@@ -440,6 +440,40 @@ class ProofInUseTests(HookCase):
                 self.assertDenied(out)
 
 
+class HubAccessTests(HookCase):
+    def copy_without_hub(self):
+        other = self.tmp / "no-hub-plugin"
+        (other / "hooks").mkdir(parents=True)
+        copy = other / "hooks" / "proof_hook.py"
+        shutil.copy(str(SCRIPT), str(copy))
+        return copy
+
+    def test_70_an_unreadable_hub_never_arms_the_gate(self):
+        copy = self.copy_without_hub()
+        rc, out, _ = self.run_hook("session-start", payload(CLAUDE, "SessionStart", source="compact"), script=copy)
+        self.assertEqual(rc, 0)
+        self.assertIn("NOT active", json.loads(out)["systemMessage"])
+        self.assertFalse(self.marker().exists())
+
+    def test_71_a_hub_that_goes_away_releases_a_live_gate(self):
+        self.compact()  # armed by the real script, whose hub exists
+        copy = self.copy_without_hub()
+        data = payload(CLAUDE, "PreToolUse", tool_name="Edit", tool_input={"file_path": "a"}, tool_use_id="u5")
+        rc, out, err = self.run_hook("gate", data, script=copy)
+        self.assertEqual(rc, 0)
+        self.assertAllowed(out)
+        self.assertIn("proof:", err)
+        self.assertFalse(self.marker().exists())
+
+    def test_72_a_read_in_another_code_page_still_counts(self):
+        """Windows PowerShell 5.1 `Get-Content` without `-Encoding utf8` decodes the UTF-8 hub as
+        cp1252 (Codex review, 2026-11-07: 91 of 111 lines matched before this rule)."""
+        garbled = HUB.read_bytes().decode("cp1252", errors="replace")
+        self.compact()
+        self.release("PowerShell", {"command": "Get-Content -Raw '%s'" % HUB}, response={"stdout": garbled, "stderr": ""})
+        self.assertFalse(self.marker().exists())
+
+
 class FastPathTests(HookCase):
     def load_module(self):
         import importlib.util
