@@ -17,6 +17,7 @@ with what to do. Exit code 1 when a host loads a copy whose router differs from 
 """
 import argparse
 import hashlib
+import json
 import os
 import re
 import sys
@@ -24,7 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ROUTER_REL = Path("skills") / "work" / "SKILL.md"
-BASE_RE = re.compile(r"Base directory for this skill: ((?:[^\"\\]|\\\\)+?[\\/]+work)\b")
+LOAD_PREFIX = "Base directory for this skill: "
 SCAN_FILES = 200  # newest transcripts read; enough to find a recent load, cheap to run
 
 
@@ -35,23 +36,60 @@ def router_digest(plugin_root):
     return hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
-TIME_RE = re.compile(r'"timestamp"\s*:\s*"([^"]+)"')
-
-
-def _clean(path_text):
-    """A JSON-escaped path from a transcript line, as a real path. A UNC prefix (\\\\server\\share)
-    keeps its two leading separators; every other run of separators becomes one slash."""
-    s = path_text.replace("\\\\", "\\")
+def _clean(path_text, escaped=True):
+    """A path from a transcript line, as a real path (escaped: still JSON-escaped). A UNC prefix
+    (\\\\server\\share) keeps its two leading separators; every other run of separators becomes one slash."""
+    s = path_text.replace("\\\\", "\\") if escaped else path_text
     unc = re.match(r"^[\\/]{2}(?=[^\\/])", s) is not None
     s = re.sub(r"[\\/]+", "/", s)
     return "/" + s if unc else s
 
 
-def claude_loaded_root(home):
-    """(plugin root, transcript) of the newest proof router load that Claude Code recorded, or None.
+def _skill_loads(line):
+    """(router path, timestamp) for each real skill load a transcript line records: a user entry
+    whose text block starts with the load line. A quote of it in a tool call or result is not a load."""
+    if LOAD_PREFIX not in line:
+        return []
+    try:
+        entry = json.loads(line)
+    except ValueError:
+        return []
+    if not isinstance(entry, dict) or entry.get("type") != "user":
+        return []
+    content = (entry.get("message") or {}).get("content")
+    if not isinstance(content, list):
+        return []
+    found = []
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "text":
+            text = block.get("text") or ""
+            if text.startswith(LOAD_PREFIX):
+                path = text[len(LOAD_PREFIX):].splitlines()[0].strip() if len(text) > len(LOAD_PREFIX) else ""
+                if re.search(r"[\\/]work$", path):
+                    found.append((_clean(path, escaped=False), entry.get("timestamp") or ""))
+    return found
 
-    Newest means the latest load event (its line's timestamp), not the latest-written transcript: an
-    old session that is still running writes its transcript last but loaded its copy long ago."""
+
+def claude_enabled(home):
+    """True or False from enabledPlugins in ~/.claude/settings.json for the proof@<marketplace> keys,
+    None when the file cannot be read or names no proof plugin."""
+    try:
+        data = json.loads((Path(home) / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    plugins = data.get("enabledPlugins") if isinstance(data, dict) else None
+    if not isinstance(plugins, dict):
+        return None
+    values = [v for k, v in plugins.items() if str(k).startswith("proof@")]
+    if not values:
+        return None
+    return any(v is True for v in values)
+
+
+def claude_loaded_root(home):
+    """(plugin root, transcript, timestamp) of the newest proof router load that Claude Code
+    recorded, or None. Newest means the latest load event (its timestamp), not the latest-written
+    transcript: an old session that is still running writes its transcript last but loaded long ago."""
     projects = Path(home) / ".claude" / "projects"
     if not projects.is_dir():
         return None
@@ -66,27 +104,35 @@ def claude_loaded_root(home):
         try:
             with open(p, encoding="utf-8", errors="ignore") as f:
                 for line in f:
-                    if "Base directory for this skill" not in line:
-                        continue
-                    stamp = TIME_RE.search(line)
-                    for m in BASE_RE.finditer(line):
-                        path = _clean(m.group(1))
+                    for path, stamp in _skill_loads(line):
                         if "proof" in path:
-                            # ISO 8601 UTC stamps sort as text; a line without one sorts first.
-                            key = (stamp.group(1) if stamp else "", mtime)
+                            # ISO 8601 UTC stamps sort as text; a load without one sorts first.
+                            key = (stamp, mtime)
                             if best is None or key >= best[0]:
                                 best = (key, path, p)
         except OSError:
             continue
     if best is None:
         return None
-    return Path(best[1]).parent.parent, best[2]  # .../skills/work -> plugin root
+    return Path(best[1]).parent.parent, best[2], best[0][0]  # .../skills/work -> plugin root
+
+
+SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$")
 
 
 def _version_key(name):
-    """Sort key for a version folder name. Numbers compare as numbers and sort above words, so
-    `0.10.0` > `0.9.0` and a `local` folder never makes the comparison fail."""
-    return tuple((1, int(x), "") if x.isdigit() else (0, 0, x) for x in re.split(r"[.+-]", name))
+    """Sort key for a version folder name, by SemVer 2.0.0 precedence: `0.10.0` > `0.9.0`, and a
+    release > its prereleases (`0.7.0` > `0.7.0-rc.1`). A name that is not SemVer (`local`) sorts
+    below every version, so the comparison never fails."""
+    m = SEMVER_RE.match(name)
+    if not m:
+        return (0, name)
+    pre = m.group(4)
+    if pre is None:
+        tail = (1,)
+    else:
+        tail = (0,) + tuple((0, int(x), "") if x.isdigit() else (1, 0, x) for x in pre.split("."))
+    return (1, int(m.group(1)), int(m.group(2)), int(m.group(3))) + tail
 
 
 def codex_enabled(home):
@@ -143,21 +189,27 @@ def report(home, repo):
     lines, code = [], 0
 
     claude = claude_loaded_root(home)
-    if claude is None:
+    enabled = claude_enabled(home)
+    if enabled is False:
+        lines.append("claude: proof is not enabled in ~/.claude/settings.json (enabledPlugins), so no copy runs")
+    elif claude is None:
         lines.append("claude: no proof router load found in the newest transcripts (not loaded yet, or not installed)")
     else:
-        root, transcript = claude
+        root, transcript, stamp = claude
+        seen = f"last load seen {stamp or 'at an unknown time'} in {transcript.name}"
+        if enabled is None:
+            seen += "; ~/.claude/settings.json names no proof plugin, so this may be history"
         have = router_digest(root)
         if have == want:
-            lines.append(f"claude: loads {root}; router same as this repository (from {transcript.name})")
+            lines.append(f"claude: loads {root}; router same as this repository ({seen})")
         elif have is None:
-            lines.append(f"claude: last load was {root}, which no longer exists; start a new session")
+            lines.append(f"claude: last load was {root}, which no longer exists ({seen}); start a new session")
         else:
             code = 1
             fix = ("it is a local clone that loads in place: merge the change into that checkout"
                    if (root.parent.parent / ".git").exists() else
                    "run `claude plugin update proof@gargeya-grey` (a GitHub install updates only on a new version)")
-            lines.append(f"claude: loads {root}; router DIFFERS from this repository; {fix}, then start a new session")
+            lines.append(f"claude: loads {root}; router DIFFERS from this repository ({seen}); {fix}, then start a new session")
 
     found = codex_installed_root(home)
     if found is None:

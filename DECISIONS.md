@@ -140,25 +140,27 @@ D16's text route did not hold (1 reload in 57 compactions). So the plugin ships 
 
 | Event | What the hook does |
 |---|---|
-| PreCompact | Asks the summary for a section "Active proof files": the absolute path of every pstack file the session read, the playbook step in progress, and the router path. |
-| SessionStart, source `compact` | Writes a marker `<temp folder>/proof-hooks/<session_id>.json` and adds a notice that starts with `proof:`: load `work` again, read the hub, read the listed files, read AGENTS.md and CLAUDE.md. |
-| PreToolUse on Edit, Write, MultiEdit, NotebookEdit, apply_patch and the shell tools | While the marker is younger than 24 hours, denies the call and names the hub. A shell call that names the hub is let through, because it is the way out. A shell command can write files, so the shell is gated too. Read, Grep and Glob stay open. A subagent call (`agent_id` set) is not gated. |
+| PreCompact | In a session whose transcript shows an action that used proof (as below), asks the summary for a section "Active proof files": the absolute path of every pstack file the session read, the playbook step in progress, and the router path. |
+| SessionStart, source `compact` | Only in a session whose transcript shows an action that used proof: the router loaded, a Skill call for `proof:work`, or a tool call on the router or the hub. Text that only names proof does not count, because every Claude Code session's skill listing names `proof:work` (seen in a real probe). Any other session gets nothing, because the gate would push an unrelated task into this workflow. With no readable transcript, it sends the notice but writes no marker. Otherwise it writes a marker `<temp folder>/proof-hooks/<session_id>.json` and adds a notice that starts with `proof:`: load `work` again, read the hub, read the listed files, read AGENTS.md and CLAUDE.md. |
+| PreToolUse on Edit, Write, MultiEdit, NotebookEdit, apply_patch and the shell tools | While the marker is younger than 24 hours, denies the call and names the hub. One plain shell command that names the hub is let through, because it is the way out; a chained, piped, redirected or substituted command is not (`cat <hub> && <edit>` is refused). A shell command can write files, so the shell is gated too. Read, Grep and Glob stay open. A subagent call (`agent_id` set) is not gated. |
 | PostToolUse on Read and shell tools | Deletes the marker when the call read the hub of this install (the path the script derives from its own folder; a hub in another copy does not count) and the response shows at least 95% of the hub's lines. So `test -f`, `head` and a failed command do not count. A Read whose response holds no text is judged by its offset and limit. A shell response with no text fields at all is a shape not seen yet, and releases, so an unknown host format never holds the gate shut. |
 
 What each host enforces (2026-11-07):
 
 | Host | PreCompact list | Notice after the summary | Edit gate | Status |
 |---|---|---|---|---|
-| Claude Code 2.1 | Yes | Yes | Yes | Verified with a real `/compact` (`claude -p --plugin-dir`, haiku): the summary had the section, a main-agent Write was denied, a subagent Write was allowed, and a Read of the hub opened the gate. |
+| Claude Code 2.1 | Yes | Yes | Yes | Verified with real `/compact` runs (`claude -p --plugin-dir`, haiku). First version: the summary had the section, a main-agent Write was denied, a subagent Write was allowed, and a Read of the hub opened the gate. Final version (2026-11-07): in a session that loaded `work`, a Bash write after the compact was denied, the agent read the hub by itself and the retry ran; in a session that never used proof, no marker was written and the Bash write ran. In Git Bash, set `MSYS_NO_PATHCONV=1` for such a probe, or `/compact` becomes a file path. |
 | Codex 0.167 | No: Codex ignores PreCompact output | Yes, after the user trusts the hooks | Yes, after the user trusts the hooks | From the Codex docs; not run on a real Codex, because the only run without the interactive trust review needs a bypass flag. Each hook has a `commandWindows` form that needs only `PLUGIN_ROOT`; it was run under cmd.exe and PowerShell 5.1. |
 | Grok | No | No | No | Grok fires only PreCompact and PostCompact at a summary and has no path to add context. |
 | Other Agent Skills hosts | No | No | No | No hook support assumed. |
 
 Rules the design keeps:
 
+- **A reminder for a cooperative agent, not a security boundary.** The gate catches an agent that forgot the workflow. It does not try to stop an agent that works around it on purpose. So, for example, a Codex code-mode script that reads the hub through a nested tool call and edits in the same run is not caught (not run); the PostToolUse event for the nested call fires before the model sees the output.
+
 - **The router stays correct without hooks.** Where no `proof:` notice follows a summary, the router tells the agent that the hooks are not active, tells the user once per session, and follows the row by itself. So a host or an install without hooks is visible, not silent: a user who trusts the plugin sees that it is not enforced there.
 - **Fails open.** Every fault (bad input, no session id, an unwritable temp folder, an old or broken marker) exits 0 with no deny and one `proof:` line on stderr. When the marker cannot be written, the notice still goes out and the user message says that the edit gate is NOT active.
-- **Writes only to the temp folder.** The marker is the only file; markers older than 24 hours are removed at the next summary. No network.
+- **Writes only to the temp folder.** The marker is the only file; markers older than 24 hours are removed at the next summary, and the fast path ignores them before that, so an abandoned session never slows other sessions. No network.
 - **The hub path comes from the script's own folder**, not from an environment variable, so the gate names the copy the host really runs.
 
 Known limits (not checked unless stated):

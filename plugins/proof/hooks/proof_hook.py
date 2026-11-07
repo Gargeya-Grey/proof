@@ -33,13 +33,29 @@ def no_marker_at_all():
             break
     if root is None:
         return False  # the fallback folder needs tempfile: take the full path
+    folder = os.path.join(root, "proof-hooks")
     try:
-        names = os.listdir(os.path.join(root, "proof-hooks"))
+        names = os.listdir(folder)
     except FileNotFoundError:
         return True
     except OSError:
         return False
-    return not any(n.endswith(".json") for n in names)
+    now = time_now()
+    for n in names:
+        if not n.endswith(".json"):
+            continue
+        try:
+            if now - os.stat(os.path.join(folder, n)).st_mtime < 24 * 60 * 60:
+                return False  # a live marker may be this session's: take the full path
+        except OSError:
+            return False
+    return True  # no marker, or only expired ones (an abandoned session must not slow every call)
+
+
+def time_now():
+    # time is a built-in module, so this import costs nothing on the fast path.
+    import time as _time
+    return _time.time()
 
 
 if __name__ == "__main__" and no_marker_at_all():
@@ -50,6 +66,7 @@ if __name__ == "__main__" and no_marker_at_all():
     sys.exit(0)
 
 import json  # noqa: E402  (after the fast path on purpose)
+import re  # noqa: E402
 import tempfile  # noqa: E402
 import time  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -116,13 +133,6 @@ def read_payload():
     if not isinstance(data, dict):
         raise Fault("input is not a JSON object")
     return data
-
-
-def drain_stdin():
-    try:
-        sys.stdin.buffer.read()
-    except Exception:
-        pass
 
 
 def temp_root():
@@ -263,9 +273,83 @@ def session_context(hub, router):
         "when it has no such list, every pstack file it names (the router is %s), "
         "then continue the playbook step the summary names. "
         "4) Read the repository's AGENTS.md and CLAUDE.md. "
-        "A gate denies file edits until the hub has been read." % (hub, router)
+        "A gate denies file edits and shell commands until the hub has been read." % (hub, router)
     )
     return clip(text, CONTEXT_CAP)
+
+
+PROOF_PATH = re.compile(
+    r"poteto-mode[/\\]+SKILL\.md"  # the hub
+    r"|proof[/\\][^\s\"']{0,80}?skills[/\\]+work[/\\]+SKILL\.md"  # the router, in any copy
+)
+LOAD_PREFIX = "Base directory for this skill: "
+CODEX_CALLS = {"function_call", "custom_tool_call", "local_shell_call"}
+
+
+def proof_action(entry):
+    """True when one transcript entry is an action that used proof. Text that only mentions proof
+    does not count: every session's skill listing names `proof:work`, and instruction files may too.
+
+    Claude Code: a skill load (a user text block that starts with the load line and names a proof
+    `work` folder), a Skill call for `proof:work`, or a tool call that names the router or the hub.
+    Codex: a tool call (`response_item` of a call type) that names the router or the hub."""
+    if not isinstance(entry, dict):
+        return False
+    kind = entry.get("type")
+    if kind in ("user", "assistant"):
+        content = (entry.get("message") or {}).get("content")
+        if not isinstance(content, list):
+            return False
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "text" and kind == "user":
+                text = block.get("text") or ""
+                if text.startswith(LOAD_PREFIX):
+                    first = text[len(LOAD_PREFIX):].splitlines()[0] if len(text) > len(LOAD_PREFIX) else ""
+                    if "proof" in first.lower() and re.search(r"[\\/]work\s*$", first):
+                        return True
+            if block.get("type") == "tool_use":
+                tool_input = block.get("input")
+                if block.get("name") == "Skill" and isinstance(tool_input, dict) \
+                        and str(tool_input.get("skill", "")).endswith("proof:work"):
+                    return True
+                parts = []
+                flatten(tool_input, parts)
+                if any(PROOF_PATH.search(p) for p in parts):
+                    return True
+        return False
+    if kind == "response_item":
+        payload = entry.get("payload")
+        if isinstance(payload, dict) and payload.get("type") in CODEX_CALLS:
+            parts = []
+            flatten({k: v for k, v in payload.items() if k not in ("id", "call_id", "status")}, parts)
+            return any(PROOF_PATH.search(p) for p in parts)
+    return False
+
+
+def proof_was_used(data):
+    """True when the session's transcript shows an action that used proof (the router loaded, or a
+    tool call on the router or the hub), False when it shows none, None when there is no transcript
+    to read. A session that never used proof is left alone: the gate would push an unrelated task
+    into an engineering workflow."""
+    path = data.get("transcript_path") if isinstance(data, dict) else None
+    if not isinstance(path, str) or not path:
+        return None
+    try:
+        with open(path, "rb") as handle:
+            for raw in handle:
+                if b"proof" not in raw and b"poteto-mode" not in raw:
+                    continue  # cheap filter before the JSON parse
+                try:
+                    entry = json.loads(raw.decode("utf-8", errors="replace"))
+                except ValueError:
+                    continue
+                if proof_action(entry):
+                    return True
+    except OSError:
+        return None
+    return False
 
 
 def do_session_start(data):
@@ -273,10 +357,15 @@ def do_session_start(data):
     source = data.get("source")
     if source not in (None, "compact"):
         return  # the matcher is "compact"; any other source does nothing
+    used = proof_was_used(data)
+    if used is False:
+        return  # proof was not in use in this session: no notice, no gate
     hub, router = str(HUB), str(ROUTER)
 
     gate_active = False
     try:
+        if used is None:
+            raise Fault("no readable transcript, so it is unknown whether proof was in use")
         path = marker_path(session_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         sweep(path.parent)
@@ -300,7 +389,7 @@ def do_session_start(data):
     else:
         message = (
             "proof: context summarized, but the edit gate is NOT active "
-            "(the temp folder is not writable). Only the reload notice was sent."
+            "(no readable transcript, or the temp folder is not writable). Only the reload notice was sent."
         )
     emit_json(
         {
@@ -311,6 +400,19 @@ def do_session_start(data):
             },
         }
     )
+
+
+CHAIN_MARKS = (";", "&", "|", ">", "<", "`", "$(", "\n", "\r")
+
+
+def plain_command(parts):
+    """True when the shell input is one command with no chaining, pipe, redirect or substitution,
+    so `cat <hub> && <edit>` cannot pass the gate on the hub's name. The gate reminds a cooperative
+    agent; it is not a security boundary (DECISIONS.md D17)."""
+    text = " ".join(parts)
+    for key in hub_keys():
+        text = text.lower().replace(key, "")
+    return not any(mark in text for mark in CHAIN_MARKS)
 
 
 def do_gate(data):
@@ -325,8 +427,8 @@ def do_gate(data):
     if name in SHELL_TOOLS:
         parts = []
         flatten(data.get("tool_input"), parts)
-        if any(names_hub(part) for part in parts):
-            return  # a shell call that reads the hub is the way out of the gate
+        if any(names_hub(part) for part in parts) and plain_command(parts):
+            return  # one plain shell command that reads the hub is the way out of the gate
     reason = (
         "proof: the context was summarized and the pstack hub was not read again. "
         "File edits and shell commands wait until you read this file in full (the Read tool, "
@@ -427,8 +529,14 @@ def main(argv):
             raise Fault("unknown subcommand %r" % (argv[1] if len(argv) > 1 else ""))
         handler = COMMANDS[argv[1]]
         if argv[1] == "precompact":
-            drain_stdin()  # the text does not depend on the input
-            handler(None)
+            # The text does not depend on the input, but the transcript says whether proof was
+            # in use. Unreadable input: print the text anyway (it only asks for a list).
+            try:
+                data = read_payload()
+            except Exception:
+                data = None
+            if proof_was_used(data) is not False:
+                handler(None)
         else:
             handler(read_payload())
     except Fault as exc:

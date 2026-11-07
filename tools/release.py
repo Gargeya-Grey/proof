@@ -27,7 +27,7 @@ VENDOR_JSON = "vendor.json"
 # current version: a merged change can never sit unreleased without CI saying so.
 RELEASE_LOCK = "release.lock.json"
 PLUGIN_DIR = "plugins/proof"
-_DIGEST_SKIP_DIRS = {"__pycache__", ".pytest_cache"}
+_DIGEST_SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules"}  # generated, git-ignored
 
 # Official SemVer 2.0.0 regular expression (https://semver.org).
 SEMVER_RE = re.compile(

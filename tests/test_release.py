@@ -290,6 +290,15 @@ class LockTests(unittest.TestCase):
             (root / CLAUDE).write_text(CLAUDE_TEXT.replace("0.1.0", "0.9.0"), encoding="utf-8")
             self.assertEqual(release.plugin_digest(root), before)
 
+    def test_generated_node_modules_do_not_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            deps = root / "plugins/proof/references/pstack/skills/poteto-mode/scripts/node_modules/x"
+            deps.mkdir(parents=True)
+            (deps / "index.js").write_text("module.exports = 1\n", encoding="utf-8")
+            self.assertEqual(release.plugin_digest(root), before)
+
     def test_other_manifest_changes_count(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(tmp)

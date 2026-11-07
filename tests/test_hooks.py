@@ -58,7 +58,21 @@ class HookCase(unittest.TestCase):
             env[name] = str(temp if temp is not None else self.temp_dir)
         return env
 
+    def proof_transcript(self, text=None):
+        """A transcript that shows proof in use: the router load line as Claude Code writes it."""
+        path = self.tmp / "transcript.jsonl"
+        if text is None:
+            text = json.dumps({"type": "user", "isMeta": True, "message": {"content": [{"type": "text",
+                   "text": "Base directory for this skill: %s" % (PLUGIN / "skills" / "work")}]}})
+        path.write_text(text + "\n", encoding="utf-8")
+        return path
+
     def run_hook(self, sub, data=None, raw=None, temp=None, script=SCRIPT):
+        if isinstance(data, dict) and data.get("transcript_path") in (CLAUDE["transcript_path"], CODEX["transcript_path"]):
+            # The sample shapes name a transcript that does not exist: give them one that shows proof in use.
+            if not (self.tmp / "transcript.jsonl").exists():
+                self.proof_transcript()
+            data = dict(data, transcript_path=str(self.tmp / "transcript.jsonl"))
         if raw is None:
             raw = json.dumps(data).encode("utf-8") if data is not None else b""
         done = subprocess.run(
@@ -183,9 +197,13 @@ class SessionStartTests(HookCase):
         deep = self.tmp
         for _ in range(4):
             deep = deep / ("d" * 40)
-        (deep / "hooks").mkdir(parents=True)
-        copy = deep / "hooks" / "proof_hook.py"
-        shutil.copy(str(SCRIPT), str(copy))
+        try:
+            (deep / "hooks").mkdir(parents=True)
+            copy = deep / "hooks" / "proof_hook.py"
+            shutil.copy(str(SCRIPT), str(copy))
+        except OSError as exc:
+            # A long temp folder can push this path past the Windows path limit (260 characters).
+            self.skipTest("cannot create the long test path here: %s" % exc)
         rc, out, _ = self.run_hook("session-start", payload(CLAUDE, "SessionStart", source="compact"), script=copy)
         self.assertEqual(rc, 0)
         context = json.loads(out)["hookSpecificOutput"]["additionalContext"]
@@ -351,7 +369,110 @@ class ReleaseTests(HookCase):
         self.assertAllowed(out)
 
 
+class ProofInUseTests(HookCase):
+    def test_60_a_session_without_proof_gets_no_notice_and_no_gate(self):
+        self.proof_transcript(json.dumps({"type": "user", "message": {"content": "write my essay"}}))
+        for sub, event in (("precompact", "PreCompact"), ("session-start", "SessionStart")):
+            with self.subTest(sub=sub):
+                rc, out, _ = self.run_hook(sub, payload(CLAUDE, event, source="compact", trigger="auto"))
+                self.assertEqual((rc, out), (0, ""))
+        self.assertFalse(self.marker().exists())
+        self.assertAllowed(self.gate("Edit"))
+
+    def test_61_actions_that_used_proof_count(self):
+        def tool_use(name, tool_input):
+            return json.dumps({"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": "t", "name": name, "input": tool_input}]}})
+        signs = [
+            json.dumps({"type": "user", "isMeta": True, "message": {"content": [{"type": "text", "text":
+                "Base directory for this skill: C:\\u\\.claude\\plugins\\cache\\m\\proof\\0.6.0\\skills\\work\n\n# Work"}]}}),
+            tool_use("Skill", {"skill": "proof:work"}),
+            tool_use("Read", {"file_path": "/x/references/pstack/skills/poteto-mode/SKILL.md"}),
+            json.dumps({"type": "response_item", "payload": {"type": "function_call", "name": "exec_command",
+                "arguments": json.dumps({"cmd": "cat /home/u/.codex/plugins/cache/m/proof/0.6.0/skills/work/SKILL.md"})}}),
+            json.dumps({"type": "response_item", "payload": {"type": "custom_tool_call", "name": "exec",
+                "input": "read('C:\\\\u\\\\proof\\\\skills\\\\work\\\\SKILL.md')"}}),
+        ]
+        for sign in signs:
+            with self.subTest(sign=sign[:60]):
+                self.proof_transcript(sign)
+                self.compact()
+                self.marker().unlink()
+
+    def test_61b_text_that_only_mentions_proof_does_not_count(self):
+        """Seen in a real probe (2026-11-07): the skill listing and CLAUDE.md name `proof:work` in
+        every session, so they must not count as use."""
+        mentions = [
+            json.dumps({"type": "attachment", "attachment": {"type": "skill_listing",
+                "content": "- proof:work: Verification-first routine"}}),
+            json.dumps({"type": "attachment", "attachment": {"type": "instructions",
+                "content": "| 1 | Load `proof:work`, write a 3-line plan |"}}),
+            json.dumps({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "t",
+                "content": "Base directory for this skill: /x/proof/skills/work"}]}}),
+            json.dumps({"type": "assistant", "message": {"content": [{"type": "text",
+                "text": "Read references/pstack/skills/poteto-mode/SKILL.md next."}]}}),
+            json.dumps({"type": "response_item", "payload": {"type": "message", "role": "assistant",
+                "content": [{"type": "output_text", "text": "see /c/proof/0.6.0/skills/work/SKILL.md"}]}}),
+        ]
+        self.proof_transcript("\n".join(mentions))
+        rc, out, _ = self.run_hook("session-start", payload(CLAUDE, "SessionStart", source="compact"))
+        self.assertEqual((rc, out), (0, ""))
+        self.assertFalse(self.marker().exists())
+
+    def test_62_no_transcript_sends_the_notice_without_a_gate(self):
+        data = payload(CLAUDE, "SessionStart", source="compact")
+        data["transcript_path"] = str(self.tmp / "missing.jsonl")
+        rc, out, _ = self.run_hook("session-start", data)
+        self.assertEqual(rc, 0)
+        body = json.loads(out)
+        self.assertIn("NOT active", body["systemMessage"])
+        self.assertTrue(body["hookSpecificOutput"]["additionalContext"].startswith("proof:"))
+        self.assertFalse(self.marker().exists())
+
+    def test_63_a_chained_shell_command_that_names_the_hub_is_gated(self):
+        self.compact()
+        for command in ("cat '%s' && touch x" % HUB, "cat '%s'; rm a" % HUB, "cat '%s' > copy" % HUB,
+                        "cat '%s' | tee b" % HUB, "echo $(cat '%s')" % HUB, "cat '%s'\ntouch x" % HUB):
+            with self.subTest(command=command):
+                data = payload(CLAUDE, "PreToolUse", tool_name="Bash", tool_input={"command": command}, tool_use_id="u4")
+                rc, out, _ = self.run_hook("gate", data)
+                self.assertEqual(rc, 0)
+                self.assertDenied(out)
+
+
 class FastPathTests(HookCase):
+    def load_module(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("proof_hook_under_test", str(SCRIPT))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_54_an_expired_marker_keeps_the_fast_path(self):
+        module = self.load_module()
+        folder = self.temp_dir / "proof-hooks"
+        folder.mkdir()
+        old = folder / "abandoned.json"
+        old.write_text("{}", encoding="utf-8")
+        then = time.time() - 25 * 3600
+        os.utime(str(old), (then, then))
+        saved_argv, saved_env = sys.argv, {k: os.environ.get(k) for k in ("TMPDIR", "TEMP", "TMP")}
+        try:
+            sys.argv = ["proof_hook.py", "gate"]
+            for name in ("TMPDIR", "TEMP", "TMP"):
+                os.environ[name] = str(self.temp_dir)
+            self.assertTrue(module.no_marker_at_all())
+            fresh = folder / "live.json"
+            fresh.write_text("{}", encoding="utf-8")
+            self.assertFalse(module.no_marker_at_all())
+        finally:
+            sys.argv = saved_argv
+            for name, value in saved_env.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
     def test_50_no_marker_folder_exits_at_once(self):
         for sub in ("gate", "release"):
             with self.subTest(sub=sub):
@@ -512,7 +633,11 @@ class HooksJsonTests(unittest.TestCase):
         env = dict(os.environ, PLUGIN_ROOT=str(PLUGIN), TEMP=str(tmp), TMP=str(tmp), TMPDIR=str(tmp))
         env.pop("CLAUDE_PLUGIN_ROOT", None)
         command = self.config["hooks"]["SessionStart"][0]["hooks"][0]["commandWindows"]
-        data = json.dumps(payload(CLAUDE, "SessionStart", source="compact")).encode("utf-8")
+        transcript = tmp / "t.jsonl"
+        transcript.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "id": "t", "name": "Skill", "input": {"skill": "proof:work"}}]}}) + "\n", encoding="utf-8")
+        data = json.dumps(payload(CLAUDE, "SessionStart", source="compact",
+                                  transcript_path=str(transcript))).encode("utf-8")
         for name, args, shell in (
             ("cmd", command, True),
             ("powershell", ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command], False),

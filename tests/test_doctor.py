@@ -120,6 +120,38 @@ class DoctorTests(unittest.TestCase):
                          "//server/share/proof/skills/work")
         self.assertEqual(doctor._clean(r"C:\\x\\\\y"), "C:/x/y")
 
+    def test_a_quoted_load_line_is_not_a_load(self):
+        real = plugin(self.base / "real" / "plugins" / "proof")
+        quoted = plugin(self.base / "quoted" / "plugins" / "proof", "# Work\n\nold\n")
+        transcript(self.home, "s1", str(real / "skills" / "work"), age=50, stamp="2026-11-01T10:00:00.000Z")
+        quote = json.dumps({"type": "user", "timestamp": "2026-11-07T10:00:00.000Z", "message": {"content": [
+            {"type": "tool_result", "content": f"Base directory for this skill: {quoted / 'skills' / 'work'}"}]}})
+        write(self.home / ".claude" / "projects" / "proj" / "s2.jsonl", quote + "\n")
+        self.assertIn(str(real), self.run_report()[0][0])
+
+    def test_claude_disabled_plugin_is_reported_and_not_compared(self):
+        other = plugin(self.base / "gh2" / "plugins" / "proof", "# Work\n\nold\n")
+        transcript(self.home, "s1", str(other / "skills" / "work"))
+        write(self.home / ".claude" / "settings.json", json.dumps({"enabledPlugins": {"proof@m": False}}))
+        lines, code = self.run_report()
+        self.assertEqual(code, 0)
+        self.assertIn("not enabled", lines[0])
+
+    def test_claude_line_says_when_the_load_was_seen(self):
+        live = plugin(self.base / "seen" / "plugins" / "proof")
+        transcript(self.home, "s1", str(live / "skills" / "work"), stamp="2026-11-07T10:00:00.000Z")
+        write(self.home / ".claude" / "settings.json", json.dumps({"enabledPlugins": {"proof@m": True}}))
+        line = self.run_report()[0][0]
+        self.assertIn("last load seen 2026-11-07T10:00:00.000Z", line)
+        self.assertNotIn("may be history", line)
+
+    def test_release_sorts_above_its_prerelease(self):
+        key = doctor._version_key
+        self.assertGreater(key("0.7.0"), key("0.7.0-rc.1"))
+        self.assertGreater(key("0.7.0-rc.2"), key("0.7.0-rc.1"))
+        self.assertGreater(key("0.10.0"), key("0.9.0"))
+        self.assertGreater(key("0.1.0"), key("local"))
+
     def codex_config(self, text):
         write(self.home / ".codex" / "config.toml", text)
 
