@@ -4,7 +4,7 @@ Each test runs the script as a subprocess with sample JSON in the input shapes o
 Codex, and with its own temp folder (TMPDIR, TEMP and TMP point at it), so the real temp markers
 are never touched.
 
-Run: python -I -m unittest tests.test_hooks -v
+Run: python -I -m unittest discover -s tests -p test_hooks.py -v
 """
 
 import json
@@ -208,7 +208,7 @@ class GateTests(HookCase):
 
     def test_12_gate_ignores_tools_that_do_not_edit(self):
         self.compact()
-        for tool in ("Read", "Bash", "Grep", "Agent", "PowerShell"):
+        for tool in ("Read", "Grep", "Glob", "Agent"):
             with self.subTest(tool=tool):
                 self.assertAllowed(self.gate(tool))
 
@@ -265,21 +265,59 @@ class ReleaseTests(HookCase):
         self.assertFalse(self.marker().exists())
 
     def test_22_gate_allows_after_a_shell_cat_of_the_hub(self):
+        full = HUB.read_text(encoding="utf-8")
+        fwd = str(HUB).replace("\\", "/")
+        git_bash = "/" + fwd[0].lower() + fwd[2:] if fwd[1:2] == ":" else fwd
         cases = [
-            ("Bash", CLAUDE, {"command": 'cat "%s"' % str(HUB).replace("\\", "/")}),
-            ("Bash", CLAUDE, {"command": "head -n 5 %s" % HUB_REL}),
-            ("PowerShell", CLAUDE, {"command": 'Get-Content -Raw "%s"' % HUB}),
-            ("exec_command", CODEX, {"cmd": "sed -n 1,80p %s" % str(HUB).replace("\\", "/")}),
-            ("Bash", CODEX, {"command": "cat %s" % str(HUB).replace("\\", "/")}),
-            ("shell", CODEX, {"command": ["bash", "-lc", "cat " + HUB_REL]}),
+            ("Bash", CLAUDE, {"command": 'cat "%s"' % fwd}, {"stdout": full, "stderr": "", "interrupted": False}),
+            ("Bash", CLAUDE, {"command": 'cat "%s"' % git_bash}, {"stdout": full, "stderr": ""}),
+            ("PowerShell", CLAUDE, {"command": 'Get-Content -Raw "%s"' % HUB}, {"stdout": full, "stderr": ""}),
+            ("exec_command", CODEX, {"cmd": "cat %s" % fwd}, {"output": full, "exit_code": 0}),
+            ("shell", CODEX, {"command": ["bash", "-lc", "cat " + fwd]}, None),  # a shape with no text
         ]
-        for tool, shape, tool_input in cases:
+        for tool, shape, tool_input, response in cases:
             with self.subTest(tool=tool, input=tool_input):
                 self.compact(shape)
                 self.assertDenied(self.gate("Edit", shape))
-                self.release(tool, tool_input, shape)
+                self.release(tool, tool_input, shape, response=response)
                 self.assertFalse(self.marker().exists())
                 self.assertAllowed(self.gate("Edit", shape))
+
+    def test_22b_a_read_that_shows_too_little_keeps_the_marker(self):
+        full = HUB.read_text(encoding="utf-8")
+        fwd = str(HUB).replace("\\", "/")
+        cases = [
+            ("Bash", {"command": "head -n 5 %s" % fwd}, {"stdout": "\n".join(full.splitlines()[:5]), "stderr": ""}),
+            ("Bash", {"command": "test -f %s" % fwd}, {"stdout": "", "stderr": ""}),
+            ("Bash", {"command": "cat %s" % fwd}, "cat: no such file"),
+            ("Read", {"file_path": str(HUB)}, {"type": "text", "file": {"filePath": fwd, "content": full[:2000]}}),
+        ]
+        for tool, tool_input, response in cases:
+            with self.subTest(tool=tool, input=tool_input):
+                self.compact()
+                self.release(tool, tool_input, response=response)
+                self.assertTrue(self.marker().exists())
+        self.release("Read", {"file_path": str(HUB)}, response={"type": "text", "file": {"filePath": fwd, "content": full}})
+        self.assertFalse(self.marker().exists())
+
+    def test_22c_a_hub_of_another_copy_keeps_the_marker(self):
+        other = self.tmp / "cache" / "proof" / "0.6.0" / HUB_REL
+        other.parent.mkdir(parents=True)
+        shutil.copy(str(HUB), str(other))
+        full = HUB.read_text(encoding="utf-8")
+        self.compact()
+        self.release("Read", {"file_path": str(other)}, response={"type": "text", "file": {"content": full}})
+        self.release("Bash", {"command": "cat %s" % HUB_REL}, response={"stdout": full})
+        self.assertTrue(self.marker().exists())
+
+    def test_22d_shell_calls_wait_for_the_hub_too(self):
+        self.compact()
+        self.assertDenied(self.gate("Bash"))
+        self.assertDenied(self.gate("exec_command", CODEX))
+        data = payload(CLAUDE, "PreToolUse", tool_name="Bash", tool_input={"command": "cat '%s'" % HUB}, tool_use_id="u3")
+        rc, out, _ = self.run_hook("gate", data)
+        self.assertEqual(rc, 0)
+        self.assertAllowed(out)
 
     def test_23_other_reads_and_commands_keep_the_marker(self):
         self.compact()
@@ -291,9 +329,11 @@ class ReleaseTests(HookCase):
 
     def test_24_a_failed_shell_command_keeps_the_marker(self):
         self.compact()
-        self.release("Bash", {"command": "cat %s" % HUB_REL}, response={"exit_code": 1})
+        full = HUB.read_text(encoding="utf-8")
+        command = {"command": "cat '%s'" % HUB}
+        self.release("Bash", command, response={"exit_code": 1, "output": full})
         self.assertTrue(self.marker().exists())
-        self.release("Bash", {"command": "cat %s" % HUB_REL}, response={"exit_code": 0})
+        self.release("Bash", command, response={"exit_code": 0, "output": full})
         self.assertFalse(self.marker().exists())
 
     def test_25_a_subagent_read_keeps_the_marker(self):
@@ -309,6 +349,33 @@ class ReleaseTests(HookCase):
     def test_27_release_with_no_marker_is_quiet(self):
         out = self.release("Read", {"file_path": str(HUB)})
         self.assertAllowed(out)
+
+
+class FastPathTests(HookCase):
+    def test_50_no_marker_folder_exits_at_once(self):
+        for sub in ("gate", "release"):
+            with self.subTest(sub=sub):
+                rc, out, err = self.run_hook(sub, payload(CLAUDE, "PreToolUse", tool_name="Edit", tool_input={}))
+                self.assertEqual((rc, out, err), (0, "", ""))
+        self.assertFalse((self.temp_dir / "proof-hooks").exists())
+
+    def test_51_an_empty_marker_folder_exits_at_once(self):
+        self.compact()
+        self.release("Read", {"file_path": str(HUB)})
+        self.assertEqual(list((self.temp_dir / "proof-hooks").glob("*.json")), [])
+        self.assertAllowed(self.gate("Edit"))
+
+    def test_52_another_session_marker_takes_the_full_path(self):
+        self.compact(session_id="other-session")
+        self.assertAllowed(self.gate("Edit"))
+        self.compact()
+        self.assertDenied(self.gate("Edit"))
+
+    def test_53_the_fast_path_loads_no_module_beyond_os_and_sys(self):
+        src = SCRIPT.read_text(encoding="utf-8")
+        head = src[: src.index("import json")]
+        imports = [line.split()[1] for line in head.splitlines() if line.startswith("import ")]
+        self.assertEqual(imports, ["os", "sys"])
 
 
 class FailOpenTests(HookCase):

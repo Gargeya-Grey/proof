@@ -281,7 +281,7 @@ class LockTests(unittest.TestCase):
             self.assertEqual(release.check_problems(root), [])
             self.assertEqual(json.loads((root / "release.lock.json").read_text(encoding="utf-8"))["version"], "0.1.1")
 
-    def test_manifest_and_cache_files_do_not_count(self):
+    def test_manifest_version_and_cache_files_do_not_count(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(tmp)
             before = release.plugin_digest(root)
@@ -289,6 +289,16 @@ class LockTests(unittest.TestCase):
             (root / "plugins/proof/hooks/__pycache__/x.pyc").write_bytes(b"pyc")
             (root / CLAUDE).write_text(CLAUDE_TEXT.replace("0.1.0", "0.9.0"), encoding="utf-8")
             self.assertEqual(release.plugin_digest(root), before)
+
+    def test_other_manifest_changes_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            text = (root / CLAUDE).read_text(encoding="utf-8")
+            (root / CLAUDE).write_text(text.replace("{", '{"description": "new",', 1), encoding="utf-8")
+            self.assertNotEqual(release.plugin_digest(root), before)
+            problems = release.lock_problems(root, "0.1.0")
+            self.assertTrue(any("changed after release 0.1.0" in p for p in problems), problems)
 
     def test_crlf_checkout_gives_the_same_digest(self):
         with tempfile.TemporaryDirectory() as tmp:

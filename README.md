@@ -32,7 +32,7 @@ When a project has its own verification skill, `verify-<app>`, every change is p
 
 ## After a context summary
 
-A long session gets summarized, and the files an agent read leave its context. On hosts that run plugin hooks, `proof` adds four small hooks (Python 3.9 or later on PATH): the summary lists the pstack files in use, a notice that starts with `proof:` follows it, and file edits are refused until the agent reads the main playbook again. Where the hooks do not run, the router tells the agent to say so to you once per session and to reload by itself.
+A long session gets summarized, and the files an agent read leave its context. On hosts that run plugin hooks, `proof` adds four small hooks (Python 3.9 or later on PATH): the summary lists the pstack files in use, a notice that starts with `proof:` follows it, and file edits and shell commands are refused until the agent reads the main playbook again. Where the hooks do not run, the router tells the agent to say so to you once per session and to reload by itself.
 
 | Host | Hooks |
 |---|---|

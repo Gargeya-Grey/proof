@@ -142,8 +142,8 @@ D16's text route did not hold (1 reload in 57 compactions). So the plugin ships 
 |---|---|
 | PreCompact | Asks the summary for a section "Active proof files": the absolute path of every pstack file the session read, the playbook step in progress, and the router path. |
 | SessionStart, source `compact` | Writes a marker `<temp folder>/proof-hooks/<session_id>.json` and adds a notice that starts with `proof:`: load `work` again, read the hub, read the listed files, read AGENTS.md and CLAUDE.md. |
-| PreToolUse on Edit, Write, MultiEdit, NotebookEdit, apply_patch | While the marker is younger than 24 hours, denies the edit and names the hub. A subagent call (`agent_id` set) is not gated. |
-| PostToolUse on Read and shell tools | Deletes the marker when the call read the hub: a Read of the whole file, or a shell command that names it and did not fail. |
+| PreToolUse on Edit, Write, MultiEdit, NotebookEdit, apply_patch and the shell tools | While the marker is younger than 24 hours, denies the call and names the hub. A shell call that names the hub is let through, because it is the way out. A shell command can write files, so the shell is gated too. Read, Grep and Glob stay open. A subagent call (`agent_id` set) is not gated. |
+| PostToolUse on Read and shell tools | Deletes the marker when the call read the hub of this install (the path the script derives from its own folder; a hub in another copy does not count) and the response shows at least 95% of the hub's lines. So `test -f`, `head` and a failed command do not count. A Read whose response holds no text is judged by its offset and limit. A shell response with no text fields at all is a shape not seen yet, and releases, so an unknown host format never holds the gate shut. |
 
 What each host enforces (2026-11-07):
 
@@ -163,10 +163,11 @@ Rules the design keeps:
 
 Known limits (not checked unless stated):
 
-- Python must be on PATH as `python` or `python3`. Without it the hooks fail, and the only signal is the host's own hook error plus the missing `proof:` notice.
+- Python must be on PATH as `python` or `python3`; the Codex Windows command (`commandWindows`) needs `python`, because a `||` fallback is a parse error in PowerShell 5.1. Without Python the hooks fail, and the only signal is the host's own hook error plus the missing `proof:` notice.
 - Claude Code on Windows runs hook commands in Git Bash (verified). Without Git Bash, the `||` in the command is a parse error in PowerShell 5.1 (not run).
-- Each Read and shell call starts Python once (about 0.6 s on the owner's machine), and so does each edit.
-- A shell command that prints only part of the hub (for example `head`) still opens the gate; only the Read tool can say how much it read.
+- Each Read, shell call and edit starts Python once. When no session has a marker, which is the normal state, the script returns before it loads any module beyond `os` and `sys`, so the cost is Python's own start. Measured on the owner's machine under load (2026-11-07): 0.5 s with that fast path, against 4 s for the full script and 0.5 s for a bare `python -c pass`.
+- A shell read must name the hub by its absolute path (native, forward slashes, or the Git Bash `/w/...` form); a relative path does not open the gate. The deny reason gives the absolute path.
+- The Claude Code response shapes are verified (Read: `file.content`; Bash: `stdout`); the Codex shapes are not documented.
 - Codex: whether tool events carry `agent_id` inside a subagent is not documented. If not, a subagent's edit is gated until it reads the hub itself.
 - Codex skips untrusted plugin hooks without a notice. After an install or an update, the user trusts them once with `/hooks` (docs/maintaining.md).
 

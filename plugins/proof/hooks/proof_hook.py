@@ -13,12 +13,46 @@ Every fault fails open: exit 0, no deny, one `proof:` line on stderr.
 The only file this script writes is `<temp folder>/proof-hooks/<session_id>.json`.
 """
 
-import json
 import os
 import sys
-import tempfile
-import time
-from pathlib import Path
+
+FAST_COMMANDS = ("gate", "release")
+
+
+def no_marker_at_all():
+    """Fast path for the events that fire on every tool call. True when the marker folder holds no
+    marker of any session, so the hook has nothing to do. It needs only os and sys, which Python has
+    loaded before this line; the rest of the script loads only when a marker may exist. It finds the
+    folder exactly as temp_root() does, and takes the full path when it is unsure."""
+    if len(sys.argv) < 2 or sys.argv[1] not in FAST_COMMANDS:
+        return False
+    root = None
+    for name in ("TMPDIR", "TEMP", "TMP"):
+        if os.environ.get(name):
+            root = os.environ[name]
+            break
+    if root is None:
+        return False  # the fallback folder needs tempfile: take the full path
+    try:
+        names = os.listdir(os.path.join(root, "proof-hooks"))
+    except FileNotFoundError:
+        return True
+    except OSError:
+        return False
+    return not any(n.endswith(".json") for n in names)
+
+
+if __name__ == "__main__" and no_marker_at_all():
+    try:
+        sys.stdin.buffer.read()  # read the input, so the host never writes into a closed pipe
+    except Exception:
+        pass
+    sys.exit(0)
+
+import json  # noqa: E402  (after the fast path on purpose)
+import tempfile  # noqa: E402
+import time  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 HUB_SUFFIX = "references/pstack/skills/poteto-mode/SKILL.md"
@@ -136,8 +170,47 @@ def flatten(value, out):
             flatten(item, out)
 
 
+def hub_keys():
+    """The installed hub's path as a tool input may spell it: native, with forward slashes, and the
+    Git Bash form of a Windows drive (W:/x -> /w/x). Lower case, so the match ignores case."""
+    native = posix(os.path.normcase(str(HUB))).lower()
+    keys = {native, posix(str(HUB)).lower()}
+    if len(native) > 2 and native[1] == ":":
+        keys.add("/" + native[0] + native[2:])
+    return keys
+
+
 def names_hub(text):
-    return HUB_SUFFIX.lower() in posix(text).lower()
+    """True when the text names the hub of this install. A hub of another copy (an old cache, a
+    clone) does not count: the gate asks for the hub that the running plugin belongs to."""
+    low = posix(text).lower()
+    return any(key in low for key in hub_keys())
+
+
+def is_hub_path(value):
+    try:
+        given = os.path.normcase(os.path.realpath(os.path.expanduser(value)))
+    except (OSError, ValueError):
+        return False
+    return given == os.path.normcase(str(HUB))
+
+
+HUB_SHARE = 0.95  # share of the hub's lines that a tool response must show
+
+
+def shows_hub(texts):
+    """True when the response texts show nearly every non-empty line of the hub, so the agent has
+    the hub in context: a `test -f`, a `head` or a failed command shows too little."""
+    try:
+        with open(HUB, "r", encoding="utf-8", errors="replace") as handle:
+            lines = [line.strip() for line in handle if line.strip()]
+    except OSError:
+        return False
+    if not lines:
+        return False
+    blob = "\n".join(texts)
+    found = sum(1 for line in lines if line in blob)
+    return found >= HUB_SHARE * len(lines)
 
 
 def marker_is_live(path):
@@ -241,18 +314,25 @@ def do_session_start(data):
 
 
 def do_gate(data):
-    if tool_name_of(data) not in EDIT_TOOLS:
+    name = tool_name_of(data)
+    if name not in EDIT_TOOLS and name not in SHELL_TOOLS:
         return
     if is_subagent(data):
         return
     path = marker_path(session_id_of(data))
     if not marker_is_live(path):
         return
+    if name in SHELL_TOOLS:
+        parts = []
+        flatten(data.get("tool_input"), parts)
+        if any(names_hub(part) for part in parts):
+            return  # a shell call that reads the hub is the way out of the gate
     reason = (
         "proof: the context was summarized and the pstack hub was not read again. "
-        "Read this file in full, then repeat the edit: %s "
-        "Also load the `work` skill again and read the files under \"Active proof files\" "
-        "in the summary." % HUB
+        "File edits and shell commands wait until you read this file in full (the Read tool, "
+        "or one shell command that prints the whole file): %s "
+        "Then repeat the call. Also load the `work` skill again and read the files under "
+        "\"Active proof files\" in the summary." % HUB
     )
     emit_json(
         {
@@ -303,14 +383,33 @@ def do_release(data):
     path = marker_path(session_id_of(data))
     if not path.exists():
         return
-    parts = []
-    flatten(data.get("tool_input"), parts)
-    if not any(names_hub(part) for part in parts):
-        return
-    if name in SHELL_TOOLS and failed_shell(data.get("tool_response")):
-        return
-    if name in READ_TOOLS and partial_read(data.get("tool_input")):
-        return
+    tool_input = data.get("tool_input")
+    response = data.get("tool_response")
+    if name in READ_TOOLS:
+        target = tool_input.get("file_path") if isinstance(tool_input, dict) else None
+        if not isinstance(target, str) or not is_hub_path(target):
+            return
+    else:
+        parts = []
+        flatten(tool_input, parts)
+        if not any(names_hub(part) for part in parts):
+            return
+        if failed_shell(response):
+            return
+    texts = []
+    flatten(response, texts)
+    if any(t.strip() for t in texts):
+        # The response shows output: it must show the hub.
+        if not shows_hub(texts):
+            return
+    elif name in READ_TOOLS:
+        # No text in the response (a shape we have not seen): judge the Read by what it asked for.
+        if partial_read(tool_input):
+            return
+    elif texts:
+        return  # a shell call that printed nothing (`test -f`) read nothing
+    # A shell response with no text fields at all is a shape we have not seen: release, so an
+    # unknown host format can never hold the gate shut (fail open).
     path.unlink()
 
 

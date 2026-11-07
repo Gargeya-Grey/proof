@@ -138,21 +138,23 @@ def finish_changelog(text, upstream):
 
 
 def plugin_digest(root):
-    """sha256 over every plugin file except the two manifests (bump changes them), with each path
-    and CRLF written as LF, so a Windows and a Linux checkout give the same value."""
+    """sha256 over every plugin file, with each path and CRLF written as LF, so a Windows and a
+    Linux checkout give the same value. In the two manifests every "version" value is blanked first:
+    bump changes it, while any other manifest change (a description, an interface field) counts."""
     import hashlib
     base = Path(root) / PLUGIN_DIR
-    skip = {CLAUDE_MANIFEST, CODEX_MANIFEST}
+    manifests = {CLAUDE_MANIFEST, CODEX_MANIFEST}
     h = hashlib.sha256()
     files = []
     for p in base.rglob("*"):
         if not p.is_file() or _DIGEST_SKIP_DIRS & set(p.relative_to(base).parts) or p.suffix == ".pyc":
             continue
-        rel = p.relative_to(Path(root)).as_posix()
-        if rel not in skip:
-            files.append((rel, p))
+        files.append((p.relative_to(Path(root)).as_posix(), p))
     for rel, p in sorted(files):
-        h.update(rel.encode("utf-8") + b"\0" + p.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+        data = p.read_bytes().replace(b"\r\n", b"\n")
+        if rel in manifests:
+            data = _VERSION_VALUE_RE.sub(r"\1\3", data.decode("utf-8")).encode("utf-8")
+        h.update(rel.encode("utf-8") + b"\0" + data + b"\0")
     return h.hexdigest()
 
 
