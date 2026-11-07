@@ -22,6 +22,12 @@ CLAUDE_MANIFEST = "plugins/proof/.claude-plugin/plugin.json"
 CODEX_MANIFEST = "plugins/proof/plugin.json"
 CHANGELOG = "CHANGELOG.md"
 VENDOR_JSON = "vendor.json"
+# Digest of the released plugin tree. A host that installs from GitHub delivers a change only when
+# the version changes (DECISIONS.md D10), so check fails when the tree differs from the digest of the
+# current version: a merged change can never sit unreleased without CI saying so.
+RELEASE_LOCK = "release.lock.json"
+PLUGIN_DIR = "plugins/proof"
+_DIGEST_SKIP_DIRS = {"__pycache__", ".pytest_cache"}
 
 # Official SemVer 2.0.0 regular expression (https://semver.org).
 SEMVER_RE = re.compile(
@@ -131,6 +137,55 @@ def finish_changelog(text, upstream):
     return text.replace("@@UPSTREAM@@", upstream, 1)
 
 
+def plugin_digest(root):
+    """sha256 over every plugin file except the two manifests (bump changes them), with each path
+    and CRLF written as LF, so a Windows and a Linux checkout give the same value."""
+    import hashlib
+    base = Path(root) / PLUGIN_DIR
+    skip = {CLAUDE_MANIFEST, CODEX_MANIFEST}
+    h = hashlib.sha256()
+    files = []
+    for p in base.rglob("*"):
+        if not p.is_file() or _DIGEST_SKIP_DIRS & set(p.relative_to(base).parts) or p.suffix == ".pyc":
+            continue
+        rel = p.relative_to(Path(root)).as_posix()
+        if rel not in skip:
+            files.append((rel, p))
+    for rel, p in sorted(files):
+        h.update(rel.encode("utf-8") + b"\0" + p.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    return h.hexdigest()
+
+
+def lock_text(version, digest):
+    return json.dumps({"version": version, "plugin_digest": digest}, indent=2) + "\n"
+
+
+def read_lock(root):
+    try:
+        data = json.loads(_read(root, RELEASE_LOCK))
+    except ValueError as exc:
+        raise ReleaseError(f"{RELEASE_LOCK}: not valid JSON ({exc})")
+    if not isinstance(data.get("version"), str) or not isinstance(data.get("plugin_digest"), str):
+        raise ReleaseError(f"{RELEASE_LOCK}: needs string keys 'version' and 'plugin_digest'")
+    return data
+
+
+def lock_problems(root, version):
+    """The plugin tree must match the digest recorded for the current version."""
+    try:
+        lock = read_lock(root)
+    except ReleaseError as exc:
+        return [f"{exc}; run: python -I tools/release.py bump <part>"]
+    if lock["version"] != version:
+        return [f"{RELEASE_LOCK} is for {lock['version']}, the manifests say {version}; "
+                "run release.py bump, which writes both"]
+    if lock["plugin_digest"] != plugin_digest(root):
+        return [f"{PLUGIN_DIR} changed after release {version}: users who install from GitHub get the "
+                "change only with a new version. Add a line under ## [Unreleased] in CHANGELOG.md, "
+                "then run: python -I tools/release.py bump <major|minor|patch>"]
+    return []
+
+
 def plan_bump(root, part, date):
     """Compute every change of a bump without writing. Returns a dict."""
     old = read_version(root, CLAUDE_MANIFEST)
@@ -152,6 +207,7 @@ def plan_bump(root, part, date):
             CLAUDE_MANIFEST: set_version_text(_read(root, CLAUDE_MANIFEST), new, CLAUDE_MANIFEST),
             CODEX_MANIFEST: set_version_text(_read(root, CODEX_MANIFEST), new, CODEX_MANIFEST),
             CHANGELOG: finish_changelog(changelog, up),
+            RELEASE_LOCK: lock_text(new, plugin_digest(root)),
         },
     }
 
@@ -165,6 +221,7 @@ def cmd_bump(root, part, date, dry_run):
     print(f"  {CHANGELOG}: move {bullets} Unreleased entr{'y' if bullets == 1 else 'ies'} "
           f"into '## [{plan['new']}] - {plan['date']}'; leave an empty '## [Unreleased]'")
     print(f"  {CHANGELOG}: append '{plan['upstream']}'")
+    print(f"  {RELEASE_LOCK}: record {plan['new']} and the digest of {PLUGIN_DIR}")
     if dry_run:
         return 0
     for rel, text in plan["files"].items():
@@ -239,6 +296,7 @@ def check_problems(root):
             seg = f"{s.get('label', name)} {s['version']} (`{s['sha'][:7]}`)"
             if seg not in lines[0]:
                 problems.append(f"CHANGELOG.md section [{version}] Upstream line lacks '{seg}' from vendor.json")
+    problems += lock_problems(root, version)
     return problems
 
 

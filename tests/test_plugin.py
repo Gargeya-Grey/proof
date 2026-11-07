@@ -22,6 +22,8 @@ MAX_TOTAL_DESCRIPTION = 1200  # always-on cost: all model-visible descriptions t
 BROKEN_UPSTREAM = {
     # Template placeholder "[PR #123](url)"; the file is byte-identical to upstream.
     ("references/pstack/skills/why/references/synthesizer-prompt.md", "url"): "broken upstream",
+    # statechart is not vendored (3.5 MB of TLA+ tooling); the router maps the name (Overrides).
+    ("references/pstack/skills/create-formal-verification-skill/SKILL.md", "../statechart/SKILL.md"): "not vendored",
 }
 
 CODEX_SCHEMA_KEYS = {
@@ -208,7 +210,7 @@ class LayoutTests(unittest.TestCase):
             self.assertTrue(len(rel) == 3 and rel[0] == "skills", f"stray SKILL.md: {p.relative_to(ROOT)}")
 
     def test_06_no_component_folders_at_plugin_root(self):
-        for name in ("agents", "hooks", "commands", "bin", ".mcp.json"):
+        for name in ("agents", "commands", "bin", ".mcp.json"):  # hooks/ is allowed: DECISIONS.md rule 3
             self.assertFalse((PLUGIN / name).exists(), f"{name} must not exist at the plugin root")
 
 
@@ -233,7 +235,6 @@ FENCED_TEXT = {
     "references/pstack/skills/how/references/explainer-prompt.md",
     "references/pstack/skills/interrogate/references/reviewer-prompt.md",
     "references/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
-    "references/pstack/skills/poteto-mode/playbooks/orchestrate.md",
     "references/pstack/skills/poteto-mode/references/bugbot-triage.md",
     "references/pstack/skills/show-me-your-work/SKILL.md",
     "references/pstack/skills/typescript-best-practices/references/patterns.md",
@@ -355,6 +356,31 @@ class ReachTests(unittest.TestCase):
         summary = [line for line in text.splitlines() if line.startswith("| Continue after a context summary")]
         self.assertTrue(summary[0].split(" | ", 1)[1].startswith(
             "Before the next step, read `references/pstack/skills/poteto-mode/SKILL.md` again, and every playbook, principle and skill file"))
+
+    def test_07_router_reports_missing_hooks(self):
+        """The hooks only reinforce the router (DECISIONS.md rule 3). The summary row must say what the
+        hook notice looks like, and what to do when it is missing, so a host without hooks is visible."""
+        text = (SKILLS / "work" / "SKILL.md").read_text(encoding="utf-8")
+        row = [line for line in text.splitlines() if line.startswith("| Continue after a context summary")][0]
+        self.assertIn("a notice that starts with `proof:` follows the summary", row)
+        self.assertIn("When the summary has no `proof:` notice beside it, the hooks are not active on this host: "
+                      "tell the user once per session, then do this row yourself.", row)
+
+    def test_07_router_routes_parallel_units_and_formal_proof(self):
+        text = (SKILLS / "work" / "SKILL.md").read_text(encoding="utf-8")
+        lines = text.splitlines()
+        units = [line for line in lines if line.startswith("| Split work into units for parallel subagents")]
+        self.assertEqual(len(units), 1, "the router needs one parallel-units route")
+        for part in ("write a task file before any worker starts", "Economy worker contract",
+                     "one review of the combined diff against the task file"):
+            self.assertIn(part, units[0])
+        swarm = [line for line in lines if line.startswith("| swarm, Orchestrate")]
+        self.assertEqual(len(swarm), 1)
+        self.assertIn("parallel-units route", swarm[0])
+        formal = [line for line in lines if line.startswith("| Prove an invariant")]
+        self.assertEqual(len(formal), 1, "the router needs one formal-verification route")
+        for name in ("create-formal-verification-skill", "maintain-formal-verification-skill"):
+            self.assertIn(f"`references/pstack/skills/{name}/SKILL.md`", formal[0])
 
     def test_07_late_triggers_are_always_visible(self):
         desc = frontmatter(SKILLS / "work" / "SKILL.md")[0].get("description", "")

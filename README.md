@@ -22,13 +22,25 @@ One router skill, `work`, sizes each task, sends it to the right playbook or ski
 | `writing-for-agents` | Model or user | Writes skills, prompts and agent instructions. |
 | `handoff` | User | Writes a resume note for the next session. |
 
-That costs about 400 tokens per session. All pstack text (the main playbook, 23 task playbooks, 24 principles, 17 workflow skills) is in `plugins/proof/references/` and loads only when the router sends the model there.
+That costs about 400 tokens per session. All pstack text (the main playbook, 23 task playbooks, 24 principles, 20 workflow skills) is in `plugins/proof/references/` and loads only when the router sends the model there.
 
 ## Verification
 
 When a project has its own verification skill, `verify-<app>`, every change is proved through it on the real app, not only with tests. That skill launches the app, drives it the way a user does, and saves the evidence. If there is none and a task changes code that a user or caller drives, the agent offers once per session to create one before it builds. It finds the facts in the repository and asks you only the decisions, a few numbered questions at a time. The skill goes to `.agents/skills/verify-<app>/`, where every host finds it. pstack's `create-verification-skill` and `maintain-verification-skill` do the work. To turn the offer off in a project, add `Verification skill: not wanted in this project.` to its `AGENTS.md` or `CLAUDE.md`.
 
-`proof` adds nothing to the host's own setup. It uses the host's built-in tools where they exist, and installing it is the whole setup.
+`proof` uses the host's built-in tools where they exist, and installing it is the whole setup.
+
+## After a context summary
+
+A long session gets summarized, and the files an agent read leave its context. On hosts that run plugin hooks, `proof` adds four small hooks (Python 3.9 or later on PATH): the summary lists the pstack files in use, a notice that starts with `proof:` follows it, and file edits are refused until the agent reads the main playbook again. Where the hooks do not run, the router tells the agent to say so to you once per session and to reload by itself.
+
+| Host | Hooks |
+|---|---|
+| Claude Code | Active after install. |
+| Codex | Active after you trust them once: run `/hooks` and trust the `proof` hooks after each install or update. |
+| Grok, other hosts | None. The agent reports that the hooks are not active. |
+
+DECISIONS.md D17 has the details and the limits. To see which copy of `proof` each host runs, run `python -I tools/doctor.py` in this repository.
 
 ## Install
 
@@ -54,11 +66,13 @@ plugins/proof/
   .claude-plugin/plugin.json        Claude Code manifest (version source of truth)
   plugin.json                       Agent Plugins manifest (Codex reads it)
   skills/work/                      The router: this repo's own text
+  hooks/                            Summary hooks: this repo's own code (D17)
   skills/<5 Matt Pocock skills>/    Vendored, unchanged
   references/pstack/                Vendored, unchanged
   LICENSES/  NOTICE.md              Upstream licenses and sources
 tools/vendor.py                     sync | check | refs | update
-tools/release.py                    bump | check
+tools/release.py                    bump | check (with release.lock.json)
+tools/doctor.py                     which copy of proof each host on this machine loads
 vendor.json  vendor.lock.json       Upstream pins and file hashes
 tests/                              Layout, links, router paths, byte checks, tooling
 docs/maintaining.md                 Update, release, install and refresh procedures
