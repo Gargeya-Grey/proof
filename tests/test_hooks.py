@@ -254,6 +254,17 @@ class GateTests(HookCase):
         self.marker().write_text(json.dumps(body), encoding="utf-8")
         self.assertDenied(self.gate("Edit"))
 
+    def test_18_gate_denies_mcp_file_edits(self):
+        """Codex review round 4: a filesystem MCP server edits files too."""
+        self.compact()
+        for tool in ("mcp__filesystem__write_file", "mcp__filesystem__edit_file",
+                     "mcp__filesystem__move_file", "mcp__fs__createFile"):
+            with self.subTest(tool=tool):
+                self.assertDenied(self.gate(tool))
+        for tool in ("mcp__filesystem__read_file", "mcp__github__get_issue"):
+            with self.subTest(tool=tool):
+                self.assertAllowed(self.gate(tool))
+
     def test_17_gate_allows_a_corrupt_marker(self):
         self.compact()
         self.marker().write_text("{not json", encoding="utf-8")
@@ -337,6 +348,23 @@ class ReleaseTests(HookCase):
         self.assertEqual(rc, 0)
         self.assertAllowed(out)
 
+    def test_22e_only_the_command_field_is_checked_for_chaining(self):
+        """Codex review round 4: a description such as `Read hub & continue` is not run."""
+        self.compact()
+        for tool, shape, tool_input in (
+            ("Bash", CLAUDE, {"command": "cat '%s'" % HUB, "description": "Read hub & continue"}),
+            ("exec_command", CODEX, {"cmd": "cat '%s'" % HUB, "justification": "a; b"}),
+        ):
+            with self.subTest(tool=tool):
+                data = payload(shape, "PreToolUse", tool_name=tool, tool_input=tool_input, tool_use_id="u5")
+                rc, out, _ = self.run_hook("gate", data)
+                self.assertEqual(rc, 0)
+                self.assertAllowed(out)
+        data = payload(CLAUDE, "PreToolUse", tool_name="Bash", tool_use_id="u6",
+                       tool_input={"command": "touch x", "description": "cat '%s'" % HUB})
+        rc, out, _ = self.run_hook("gate", data)
+        self.assertDenied(out)
+
     def test_23_other_reads_and_commands_keep_the_marker(self):
         self.compact()
         self.release("Read", {"file_path": str(PLUGIN / "skills" / "work" / "SKILL.md")})
@@ -419,6 +447,27 @@ class ProofInUseTests(HookCase):
         self.assertEqual((rc, out), (0, ""))
         self.assertFalse(self.marker().exists())
 
+    def test_61c_standalone_pstack_and_lookalike_names_do_not_count(self):
+        """Codex review round 4: a separate pstack install, or a name that only ends in `proof`,
+        is not proof."""
+        def tool_use(name, tool_input):
+            return json.dumps({"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": "t", "name": name, "input": tool_input}]}})
+        others = [
+            tool_use("Read", {"file_path": "/opt/pstack/skills/poteto-mode/SKILL.md"}),
+            tool_use("Read", {"file_path": "/x/proofing/skills/work/SKILL.md"}),
+            tool_use("Read", {"file_path": "/x/myproof/skills/work/SKILL.md"}),
+            tool_use("Skill", {"skill": "myproof:work"}),
+            json.dumps({"type": "user", "isMeta": True, "message": {"content": [{"type": "text",
+                "text": "Base directory for this skill: /x/notproof/skills/work\n\n# Work"}]}}),
+        ]
+        for other in others:
+            with self.subTest(other=other[:70]):
+                self.proof_transcript(other)
+                rc, out, _ = self.run_hook("session-start", payload(CLAUDE, "SessionStart", source="compact"))
+                self.assertEqual((rc, out), (0, ""))
+                self.assertFalse(self.marker().exists())
+
     def test_62_no_transcript_sends_the_notice_without_a_gate(self):
         data = payload(CLAUDE, "SessionStart", source="compact")
         data["transcript_path"] = str(self.tmp / "missing.jsonl")
@@ -426,7 +475,11 @@ class ProofInUseTests(HookCase):
         self.assertEqual(rc, 0)
         body = json.loads(out)
         self.assertIn("NOT active", body["systemMessage"])
-        self.assertTrue(body["hookSpecificOutput"]["additionalContext"].startswith("proof:"))
+        context = body["hookSpecificOutput"]["additionalContext"]
+        self.assertTrue(context.startswith("proof:"))
+        # Codex review round 4: the model must not be told that a gate enforces the reload.
+        self.assertIn("No gate enforces this", context)
+        self.assertNotIn("A gate denies", context)
         self.assertFalse(self.marker().exists())
 
     def test_63_a_chained_shell_command_that_names_the_hub_is_gated(self):
@@ -642,6 +695,12 @@ class HooksJsonTests(unittest.TestCase):
             self.assertIn(tool, matchers["PreToolUse"].split("|"))
         for tool in ("Read", "Bash", "PowerShell", "exec_command"):
             self.assertIn(tool, matchers["PostToolUse"].split("|"))
+        # Claude Code matches the whole tool name against the matcher (a regular expression).
+        import re
+        pre = re.compile("(?:%s)" % matchers["PreToolUse"])
+        for tool in ("mcp__filesystem__write_file", "mcp__filesystem__edit_file", "mcp__fs__createFile"):
+            self.assertTrue(pre.fullmatch(tool), tool)
+        self.assertFalse(pre.fullmatch("mcp__filesystem__read_file"))
 
     def test_41_every_command_names_an_existing_script_and_subcommand(self):
         expected = {"PreCompact": "precompact", "SessionStart": "session-start", "PreToolUse": "gate", "PostToolUse": "release"}

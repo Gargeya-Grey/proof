@@ -178,9 +178,10 @@ def codex_copies(codex_dir):
     if enabled is None:
         notes.append("config.toml not read, so the enabled state is not checked")
     elif enabled:
-        chosen = [p for p in roots if p.parent.parent.name in enabled]
-        if chosen:
-            roots = chosen
+        # Every copy is kept: a trusted project's .codex/config.toml can enable another marketplace
+        # than the user config does, and that file is not read here.
+        notes.append("the user config.toml enables " + ", ".join("proof@" + m for m in sorted(enabled))
+                     + "; a project's .codex/config.toml may enable another, so no copy is skipped")
     elif roots:
         notes.append("the user config.toml does not enable proof; a project's .codex/config.toml may (not checked)")
     return roots, notes

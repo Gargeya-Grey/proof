@@ -97,6 +97,20 @@ SHELL_TOOLS = {
 }
 
 
+# An MCP tool that changes files (for example mcp__filesystem__write_file or edit_file). The
+# PreToolUse matcher in hooks.json names the same verbs.
+MCP_EDIT_VERBS = ("write", "edit", "create", "move", "delete", "patch", "rename", "remove")
+
+
+def is_edit_tool(name):
+    if name in EDIT_TOOLS:
+        return True
+    if name.startswith("mcp__"):
+        tool = name.rsplit("__", 1)[-1]
+        return any(verb in tool for verb in MCP_EDIT_VERBS)
+    return False
+
+
 class Fault(Exception):
     """An expected fault; the message goes to stderr."""
 
@@ -275,7 +289,10 @@ def do_precompact(data):
     emit(clip(text, PRECOMPACT_CAP))
 
 
-def session_context(hub, router):
+def session_context(hub, router, gate_active=True):
+    last = ("A gate denies file edits and shell commands until the hub has been read."
+            if gate_active else
+            "No gate enforces this in this session (the hook could not arm it): do these steps yourself.")
     text = (
         "proof: the context was just summarized. Before any edit, do these in order. "
         "1) Load the `work` skill again (Claude Code: Skill `proof:work`; other hosts: the "
@@ -284,17 +301,23 @@ def session_context(hub, router):
         "3) Read every file listed under \"Active proof files\" in the summary, or, "
         "when it has no such list, every pstack file it names (the router is %s), "
         "then continue the playbook step the summary names. "
-        "4) Read the repository's AGENTS.md and CLAUDE.md. "
-        "A gate denies file edits and shell commands until the hub has been read." % (hub, router)
+        "4) Read the repository's AGENTS.md and CLAUDE.md. %s" % (hub, router, last)
     )
     return clip(text, CONTEXT_CAP)
 
 
 PROOF_PATH = re.compile(
-    r"poteto-mode[/\\]+SKILL\.md"  # the hub
-    r"|proof[/\\][^\s\"']{0,80}?skills[/\\]+work[/\\]+SKILL\.md"  # the router, in any copy
+    # The hub in proof's own layout. A standalone pstack install (pstack/skills/poteto-mode) is
+    # not proof, so its hub does not count.
+    r"references[/\\]+pstack[/\\]+skills[/\\]+poteto-mode[/\\]+SKILL\.md"
+    # The router, in any copy: a folder named exactly `proof`, then (a version folder and)
+    # skills/work/SKILL.md.
+    r"|(?:^|[/\\\s\"'])proof[/\\]+(?:[^/\\\s\"']+[/\\]+)?skills[/\\]+work[/\\]+SKILL\.md"
 )
 LOAD_PREFIX = "Base directory for this skill: "
+# The first line of a skill load names the skill folder: a folder named exactly `proof`, then
+# (a version folder and) skills/work. A path such as /x/proofing/skills/work does not match.
+PROOF_LOAD = re.compile(r"(?:^|[/\\])proof[/\\]+(?:[^/\\]+[/\\]+)?skills[/\\]+work[/\\]*\s*$", re.I)
 CODEX_CALLS = {"function_call", "custom_tool_call", "local_shell_call"}
 
 
@@ -319,12 +342,12 @@ def proof_action(entry):
                 text = block.get("text") or ""
                 if text.startswith(LOAD_PREFIX):
                     first = text[len(LOAD_PREFIX):].splitlines()[0] if len(text) > len(LOAD_PREFIX) else ""
-                    if "proof" in first.lower() and re.search(r"[\\/]work\s*$", first):
+                    if PROOF_LOAD.search(first):
                         return True
             if block.get("type") == "tool_use":
                 tool_input = block.get("input")
                 if block.get("name") == "Skill" and isinstance(tool_input, dict) \
-                        and str(tool_input.get("skill", "")).endswith("proof:work"):
+                        and str(tool_input.get("skill", "")).strip() == "proof:work":
                     return True
                 parts = []
                 flatten(tool_input, parts)
@@ -410,7 +433,7 @@ def do_session_start(data):
             "systemMessage": clip(message, MESSAGE_CAP),
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
-                "additionalContext": session_context(hub, router),
+                "additionalContext": session_context(hub, router, gate_active),
             },
         }
     )
@@ -419,11 +442,24 @@ def do_session_start(data):
 CHAIN_MARKS = (";", "&", "|", ">", "<", "`", "$(", "\n", "\r")
 
 
-def plain_command(parts):
-    """True when the shell input is one command with no chaining, pipe, redirect or substitution,
+def command_text(tool_input, parts):
+    """The command the shell runs: the `command` field (Claude Code, Codex shell_command) or `cmd`
+    (Codex exec_command), a string or a list of words. Other fields, such as a description, are not
+    run, so they do not count. An unknown shape falls back to every string in the input."""
+    if isinstance(tool_input, dict):
+        for key in ("command", "cmd"):
+            value = tool_input.get(key)
+            if isinstance(value, str):
+                return value
+            if isinstance(value, list) and all(isinstance(v, str) for v in value):
+                return " ".join(value)
+    return " ".join(parts)
+
+
+def plain_command(text):
+    """True when the shell command is one command with no chaining, pipe, redirect or substitution,
     so `cat <hub> && <edit>` cannot pass the gate on the hub's name. The gate reminds a cooperative
     agent; it is not a security boundary (DECISIONS.md D17)."""
-    text = " ".join(parts)
     for key in hub_keys():
         text = text.lower().replace(key, "")
     return not any(mark in text for mark in CHAIN_MARKS)
@@ -431,7 +467,7 @@ def plain_command(parts):
 
 def do_gate(data):
     name = tool_name_of(data)
-    if name not in EDIT_TOOLS and name not in SHELL_TOOLS:
+    if not is_edit_tool(name) and name not in SHELL_TOOLS:
         return
     if is_subagent(data):
         return
@@ -450,7 +486,8 @@ def do_gate(data):
     if name in SHELL_TOOLS:
         parts = []
         flatten(data.get("tool_input"), parts)
-        if any(names_hub(part) for part in parts) and plain_command(parts):
+        command = command_text(data.get("tool_input"), parts)
+        if names_hub(command) and plain_command(command):
             return  # one plain shell command that reads the hub is the way out of the gate
     reason = (
         "proof: the context was summarized and the pstack hub was not read again. "

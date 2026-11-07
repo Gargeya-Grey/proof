@@ -174,13 +174,18 @@ class DoctorTests(unittest.TestCase):
         self.assertIn("a project's .codex/config.toml may", codex)
         self.assertIn("DIFFERS", codex)
 
-    def test_codex_enabled_marketplace_is_chosen(self):
+    def test_codex_copy_the_user_config_skips_is_still_compared(self):
+        """A trusted project's .codex/config.toml can enable another marketplace, so a stale copy
+        in a marketplace the user config does not enable still fails (Codex review round 4)."""
         plugin(self.home / ".codex" / "plugins" / "cache" / "a" / "proof" / "0.9.0", "# Work\n\nold\n")
         plugin(self.home / ".codex" / "plugins" / "cache" / "b" / "proof" / "0.1.0")
         self.codex_config('[plugins."proof@b"]\nenabled = true\n')
-        codex = next(l for l in self.run_report()[0] if l.startswith("codex:"))
-        self.assertIn(str(Path("b") / "proof" / "0.1.0"), codex)
-        self.assertIn("same as this repository", codex)
+        lines, code = self.run_report()
+        codex = next(l for l in lines if l.startswith("codex:"))
+        self.assertEqual(code, 1)
+        self.assertIn(str(Path("a") / "proof" / "0.9.0") + ": router DIFFERS", codex)
+        self.assertIn("the user config.toml enables proof@b", codex)
+        self.assertNotIn(str(Path("b") / "proof" / "0.1.0") + ":", codex)
 
     def test_codex_local_copy_is_compared_too(self):
         plugin(self.home / ".codex" / "plugins" / "cache" / "m" / "proof" / "local", "# Work\n\nold\n")
