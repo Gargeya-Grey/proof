@@ -5,6 +5,8 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-07
+
 ### Added
 
 - Router: a Routes row for an escape (a defect in work called done): pstack's `correct` for that class from its first report, a census before the fix, the check that should have found it, and `principle-attack-the-premise` when the class comes back after a class fix. DECISIONS.md D16.
@@ -13,11 +15,31 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 - `tests/router-scenarios.md`: cases 30 to 36, and a prompt that asks for the first actions in order.
 - Router: three Economy rules. User calls: decide each choice inside the task and record it; ask the user only about taste, money, an irreversible step, a legal commitment, their own account, a step they kept, or a question the router or a skill it routes to asks. Refused merge: when a refusal names no specific check, review thread or approval, read unresolved review threads, required checks and required approvals first. Approvals: point the user at a prompt only when a tool result shows one waiting.
 - `tests/router-scenarios.md`: cases 27 to 29 for those rules.
+- Router: a Routes row to split work into units for parallel subagents: the user's own orchestration skill, else a task file (goal, units with files and acceptance checks, contracts, proving commands), workers under the worker contract, a collector, and one review of the combined diff against the task file. It replaces the swarm and Orchestrate mapping. DECISIONS.md, Skills that stay outside the plugin.
+- Router: a Routes row to prove an invariant, a race, a retry, a state machine or a parser where tests reach too little: find the project's formal-verification skill by what it does; none: `create-formal-verification-skill`; one, and the checked code changed: `maintain-formal-verification-skill`.
+- Vendored pstack skills `in-your-own-words`, `create-formal-verification-skill` and `maintain-formal-verification-skill` (now 45 pstack skills).
+- `release.lock.json` and a release guard: `tools/release.py bump` records a digest of `plugins/proof/` (manifests included, with their version values blanked; generated `node_modules` left out), and `release.py check` fails while the tree differs from it, so a merged change cannot reach GitHub users without a new version. DECISIONS.md D10.
+- `tools/doctor.py`: reports which copy of proof Claude Code and Codex really load, from the host's own record (the latest real skill-load event in Claude Code transcripts, with the enabled state from `settings.json`, noted but not trusted because a project can enable a plugin; every installed Codex copy is compared, because Codex does not record which version folder runs and a project's `.codex/config.toml` can enable another marketplace than the user config; `CLAUDE_CONFIG_DIR` and `CODEX_HOME` are honoured), compares each router with this repository, and says what to do. DECISIONS.md D10.
+- Hooks (`hooks/hooks.json`, `hooks/proof_hook.py`) that enforce the router's context-summary row: PreCompact asks the summary for the active proof files, SessionStart after a summary adds a `proof:` notice, and file edits and shell commands are denied until the hub of this install is read again in full (the response must show the hub). Only sessions whose transcript shows proof in use get the notice and the gate (proof's own router or hub path, or a Skill call for exactly `proof:work`; a standalone pstack install does not count). MCP tools that change files are gated too, and only the shell command field is checked for chaining. When the gate cannot arm, the notice tells the agent so. Subagents are not gated, and every fault fails open. Active on Claude Code (verified), and on Codex after the user trusts the hooks (not run). DECISIONS.md rule 3 and D17.
+- Router: the context-summary row names the `proof:` notice and the edit gate, and tells the agent to report once per session when no notice follows a summary.
+- `tests/test_hooks.py`: 55 tests with Claude Code and Codex input shapes, run on temp folders. The gate and release hooks return before they load any module when no marker exists (4 s to 0.5 s per tool call, measured under load).
+- `tests/test_release.py`: lock tests. `tests/test_doctor.py`: 19 tests on fake home folders.
 
 ### Changed
 
 - Router: the `work` description says to load it again after a context summary and on every escape (about 100 more always-on characters).
 - Router: an escape is never trivial, and in review convergence a defect in work called done takes the escape route.
+- Router: the model override also covers reasoning level and speed, from the user's policy, else the Economy tier at the host's defaults.
+- Router: the goal restatement (first message, PR `## Why`, final report) stays, after any line the user's rules put first.
+- Router: ketchup and ketchup-video map to poteto-mode's Writing the reply; statechart (not vendored) maps to the shortest trace of each violation in plain words; sharpen is added to the not-installed list.
+- Router: after a no to the verification question, every final report of the session gives the opt-out line itself (scenario case 8 dropped it twice).
+- Router: a `poteto-agent` delegate gets the absolute paths of `poteto-agent.md` and the hub as its second and third files to read.
+- `tests/test_plugin.py`: a `hooks/` folder in the plugin is allowed (DECISIONS.md rule 3).
+- Docs: AGENTS.md, README.md and docs/maintaining.md describe the release lock and doctor. pstack `statechart` stays outside the plugin (407 files, 3.5 MB; DECISIONS.md D5).
+- Upstream pstack 0.15.20 → 0.15.36 (`1b6d44f` → `c742dd6`): 47 changed, 0 added, 7 removed files.
+- Upstream mattpocock/skills v1.3.1 → v1.3.2 (`24fe0ef` → `d1478fc`): 4 changed, 0 added, 0 removed files.
+
+Upstream: pstack 0.15.36 (`c742dd6`), mattpocock/skills v1.3.2 (`d1478fc`).
 
 ## [0.6.0] - 2026-10-16
 

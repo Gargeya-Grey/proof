@@ -2,8 +2,8 @@
   "sources": {
     "pstack": {
       "repo": "cursor/plugins",
-      "sha": "1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def",
-      "version": "0.15.20",
+      "sha": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c",
+      "version": "0.15.36",
       "subfolder": "pstack",
       "license": "MIT",
       "license_file": "plugins/proof/LICENSES/pstack.txt",
@@ -22,8 +22,8 @@
     },
     "mattpocock": {
       "repo": "mattpocock/skills",
-      "sha": "24fe0ef7737efae15c87225755e9f6f5965e4888",
-      "version": "v1.3.1",
+      "sha": "d1478fcb140db0b93c0c8df17bcfd311844749d0",
+      "version": "v1.3.2",
       "subfolder": "",
       "license": "MIT",
       "license_file": "plugins/proof/LICENSES/mattpocock-skills.txt",
@@ -165,6 +165,24 @@
       "type": "dir",
       "from": "pstack/skills/typescript-best-practices",
       "to": "plugins/proof/references/pstack/skills/typescript-best-practices"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/in-your-own-words",
+      "to": "plugins/proof/references/pstack/skills/in-your-own-words"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/create-formal-verification-skill",
+      "to": "plugins/proof/references/pstack/skills/create-formal-verification-skill"
+    },
+    {
+      "source": "pstack",
+      "type": "dir",
+      "from": "pstack/skills/maintain-formal-verification-skill",
+      "to": "plugins/proof/references/pstack/skills/maintain-formal-verification-skill"
     },
     {
       "source": "pstack",

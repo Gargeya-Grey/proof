@@ -31,15 +31,22 @@ CHANGELOG = (TITLE + "## [Unreleased]\n\n### Added\n\n- New thing.\n\n### Fixed\
              "## [0.1.0] - 2026-10-12\n\n### Added\n\n- First build.\n\n" + UPSTREAM + "\n")
 
 
-def make_root(tmp, claude=CLAUDE_TEXT, codex=CODEX_TEXT, changelog=CHANGELOG, vendor=VENDOR):
+ROUTER = "plugins/proof/skills/work/SKILL.md"
+
+
+def make_root(tmp, claude=CLAUDE_TEXT, codex=CODEX_TEXT, changelog=CHANGELOG, vendor=VENDOR, lock=True):
+    """A fixture tree. lock=True records the digest of the tree for version 0.1.0, as a release does."""
     root = Path(tmp)
     for rel, text in ((CLAUDE, claude), (CODEX, codex), ("CHANGELOG.md", changelog),
-                      ("vendor.json", json.dumps(vendor))):
+                      ("vendor.json", json.dumps(vendor)), (ROUTER, "# Work\n")):
         if text is None:
             continue
         p = root / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(text.encode("utf-8"))
+    if lock:
+        (root / "release.lock.json").write_text(
+            release.lock_text("0.1.0", release.plugin_digest(root)), encoding="utf-8")
     return root
 
 
@@ -243,3 +250,76 @@ class CheckTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LockTests(unittest.TestCase):
+    """A change to the plugin after a release fails check until the version moves (DECISIONS.md D10)."""
+
+    def test_unchanged_tree_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(release.lock_problems(make_root(tmp), "0.1.0"), [])
+
+    def test_changed_plugin_file_fails_and_names_the_fix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            (root / ROUTER).write_text("# Work\n\nA new route.\n", encoding="utf-8")
+            out = release.check_problems(root)
+            self.assertTrue(any("changed after release 0.1.0" in p and "release.py bump" in p for p in out), out)
+
+    def test_new_plugin_file_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            (root / "plugins/proof/hooks").mkdir(parents=True)
+            (root / "plugins/proof/hooks/hooks.json").write_text("{}", encoding="utf-8")
+            self.assertTrue(release.lock_problems(root, "0.1.0"))
+
+    def test_bump_after_a_change_passes(self):
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            root = make_root(tmp)
+            (root / ROUTER).write_text("# Work\n\nA new route.\n", encoding="utf-8")
+            self.assertEqual(release.cmd_bump(root, "patch", "2026-11-07", False), 0)
+            self.assertEqual(release.check_problems(root), [])
+            self.assertEqual(json.loads((root / "release.lock.json").read_text(encoding="utf-8"))["version"], "0.1.1")
+
+    def test_manifest_version_and_cache_files_do_not_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            (root / "plugins/proof/hooks/__pycache__").mkdir(parents=True)
+            (root / "plugins/proof/hooks/__pycache__/x.pyc").write_bytes(b"pyc")
+            (root / CLAUDE).write_text(CLAUDE_TEXT.replace("0.1.0", "0.9.0"), encoding="utf-8")
+            self.assertEqual(release.plugin_digest(root), before)
+
+    def test_generated_node_modules_do_not_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            deps = root / "plugins/proof/references/pstack/skills/poteto-mode/scripts/node_modules/x"
+            deps.mkdir(parents=True)
+            (deps / "index.js").write_text("module.exports = 1\n", encoding="utf-8")
+            self.assertEqual(release.plugin_digest(root), before)
+
+    def test_other_manifest_changes_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            text = (root / CLAUDE).read_text(encoding="utf-8")
+            (root / CLAUDE).write_text(text.replace("{", '{"description": "new",', 1), encoding="utf-8")
+            self.assertNotEqual(release.plugin_digest(root), before)
+            problems = release.lock_problems(root, "0.1.0")
+            self.assertTrue(any("changed after release 0.1.0" in p for p in problems), problems)
+
+    def test_crlf_checkout_gives_the_same_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            before = release.plugin_digest(root)
+            (root / ROUTER).write_bytes(b"# Work\r\n")
+            self.assertEqual(release.plugin_digest(root), before)
+
+    def test_missing_or_mismatched_lock_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(any("release.lock.json" in p for p in release.check_problems(make_root(tmp, lock=False))))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            (root / "release.lock.json").write_text(release.lock_text("0.0.9", release.plugin_digest(root)), encoding="utf-8")
+            self.assertTrue(any("is for 0.0.9" in p for p in release.check_problems(root)))

@@ -6,13 +6,13 @@ This repository builds `proof`: one plugin that gives Claude Code, Codex, Grok a
 
 - **Update** from upstream (pstack, Matt Pocock skills): follow [docs/maintaining.md](docs/maintaining.md#update-from-upstream).
 - **Release** a version: follow [docs/maintaining.md](docs/maintaining.md#release).
-- **Install or refresh** the plugin on a host: see [docs/maintaining.md](docs/maintaining.md#install-and-refresh).
+- **Install or refresh** the plugin on a host: see [docs/maintaining.md](docs/maintaining.md#install-and-refresh). To see which copy each host runs, run `python -I tools/doctor.py`; never judge it from a cache folder.
 - **Change the router** (`plugins/proof/skills/work/SKILL.md`): load the `writing-for-agents` skill first; every pstack name the vendored text uses must stay reachable. After the change, run [tests/router-scenarios.md](tests/router-scenarios.md) with a small model; done when every answer matches its Expected row.
 
 ## Rules
 
 - Vendored files change only through `tools/vendor.py`: `plugins/proof/references/`, `plugins/proof/LICENSES/`, and the skill folders `grilling`, `tdd`, `codebase-design`, `writing-for-agents`, `handoff`. Host-specific wording goes in the router or in `plugins/proof/skills/work/agents/openai.yaml`.
-- Every change to the plugin adds a line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+- Every change to the plugin adds a line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md), and the same pull request bumps the version with `tools/release.py bump` (its `check` fails otherwise).
 - Commit, tag and push only when the owner asks.
 - Scratch files go in `_scratch/` (git ignores it).
 - Verification skill: not wanted in this project. The checks below are this repository's proof.

@@ -52,6 +52,10 @@ Using only that router file, answer each case in one line: the file, skill or se
 34. Host: Claude Code. You fixed a one-word typo in README and called it done. The user replies that your fix broke the link on the same line. Is this a trivial task?
 35. Host: Claude Code. One review of work you called done reports the same defect in three files. No earlier report showed this class. What do you do?
 36. Host: Codex. Your pull request is a draft, and you have not called the work done. An outside reviewer finds a wrong-behaviour defect in it. Is this an escape, and what do you do?
+37. Host: Grok. The conversation continues from a summary of earlier context. No message that starts with `proof:` follows the summary. What do you tell the user, and what do you read?
+38. Host: Codex. The user says: "Split this change into four parallel units and run workers for them." The user's rules name no orchestration skill. What do you write before any worker starts, and who reviews at the end?
+39. Host: Claude Code. "Prove that the job queue never runs one job twice when a worker retries." No project skill runs a model checker or prover.
+40. Host: Claude Code. You are inside pstack text that says to use swarm to run the units. The user has a `task-graph` skill. Which do you use?
 ```
 
 ## Expected
@@ -94,6 +98,10 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 34 | Not trivial: an escape always takes its route. First `references/pstack/skills/correct/SKILL.md`, applied to that class, then a census of the class | No | No |
 | 35 | Routes, escape: first `references/pstack/skills/correct/SKILL.md`, applied to that class now. Then a census of every instance of the class, not only the three files and not only this change. Fix all of them, and add a check of your own that should have found it. | No | No |
 | 36 | Not an escape (not work you called done). Economy, review convergence: fix it, and the same fault in every other place in the change | No | No |
+| 37 | Routes, context summary: tell the user once per session that the hooks are not active on this host. Then read `references/pstack/skills/poteto-mode/SKILL.md` again, and every file that the summary or the task list names. | No (it tells the user once; it asks nothing) | No |
+| 38 | Routes, parallel units: first a task file (the goal in one line, each unit with its files and acceptance check, the contracts, the proving commands). Workers under the Economy worker contract; you collect and run the full proof; then one review of the combined diff against the task file, by the reviewer the user's rules name, else the Review route. | No | No |
+| 39 | Routes, formal proof: no project formal-verification skill, so `references/pstack/skills/create-formal-verification-skill/SKILL.md` | No | No |
+| 40 | Overrides, swarm: the parallel-units route, so the user's `task-graph` skill | No | No |
 
 ## Install cases
 

@@ -6,8 +6,8 @@ The `proof` plugin vendors third-party skill text byte for byte. Do not edit the
 
 | Name | Repository | Commit | Version | License |
 |---|---|---|---|---|
-| pstack | https://github.com/cursor/plugins | `1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def` | 0.15.20 | [MIT](LICENSES/pstack.txt) |
-| mattpocock | https://github.com/mattpocock/skills | `24fe0ef7737efae15c87225755e9f6f5965e4888` | v1.3.1 | [MIT](LICENSES/mattpocock-skills.txt) |
+| pstack | https://github.com/cursor/plugins | `c742dd61706fbacc1b95f1a20b7b988cf096ce6c` | 0.15.36 | [MIT](LICENSES/pstack.txt) |
+| mattpocock | https://github.com/mattpocock/skills | `d1478fcb140db0b93c0c8df17bcfd311844749d0` | v1.3.2 | [MIT](LICENSES/mattpocock-skills.txt) |
 
 ## Vendored folders
 
@@ -20,13 +20,16 @@ The `proof` plugin vendors third-party skill text byte for byte. Do not edit the
 - `references/pstack/skills/benchmark-checklist` (1 file)
 - `references/pstack/skills/blast-radius` (1 file)
 - `references/pstack/skills/correct` (1 file)
+- `references/pstack/skills/create-formal-verification-skill` (1 file)
 - `references/pstack/skills/create-verification-skill` (4 files)
 - `references/pstack/skills/figure-it-out` (1 file)
 - `references/pstack/skills/how` (3 files)
-- `references/pstack/skills/interrogate` (5 files)
+- `references/pstack/skills/in-your-own-words` (1 file)
+- `references/pstack/skills/interrogate` (1 file)
+- `references/pstack/skills/maintain-formal-verification-skill` (1 file)
 - `references/pstack/skills/maintain-verification-skill` (1 file)
 - `references/pstack/skills/no-comments` (1 file)
-- `references/pstack/skills/poteto-mode` (46 files)
+- `references/pstack/skills/poteto-mode` (43 files)
 - `references/pstack/skills/principle-attack-the-premise` (1 file)
 - `references/pstack/skills/principle-boundary-discipline` (1 file)
 - `references/pstack/skills/principle-build-the-lever` (1 file)

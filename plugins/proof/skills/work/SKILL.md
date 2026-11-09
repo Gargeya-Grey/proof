@@ -29,7 +29,7 @@ For every task larger than trivial, before you plan:
 2. Found: read it and use it for every proof step. When the change adds or changes a user-facing feature, add or update that feature's file and the `features/README.md` index, in the shape of create-verification-skill step 3.
 3. Not found, and the task changes code that a user or caller drives (a UI, CLI or TUI, service, HTTP API or library API; changes to docs or tests only do not count): before you build, ask the user once per session whether to create it now, and recommend yes. Skip this step when the user's instruction files say `Verification skill: not wanted in this project.`
    - Yes: follow `references/pstack/skills/create-verification-skill/SKILL.md`. Find every fact you can in the repository. Put the rest to the user in rounds, as the `grilling` skill does.
-   - No: prove the change with the host's own tools. In the final report, say that the project has no verification skill, and give the user the line above to add to their instruction file if they never want the question.
+   - No: prove the change with the host's own tools. Every final report of the session then says two things: the project has no verification skill, and the user can add `Verification skill: not wanted in this project.` to their instruction file to stop the question.
 
 Only the session that talks to the user asks. A subagent follows its brief. When no user can answer (a headless run, or a full-autonomy grant), skip the question, prove the change with the host's own tools, and say so in the report.
 
@@ -56,7 +56,9 @@ Each task type below starts here, also when a pstack playbook is already running
 |---|---|
 | Debug a defect | pstack's Bug fix playbook (`playbooks/bug-fix.md`). Prove the fix with the `tdd` skill. |
 | Fix an escape: a defect in work you called done, found by a reviewer, a test, CI or the user | Read `references/pstack/skills/correct/SKILL.md` and apply it to that class now, from its first report. Find every instance of the class before you fix one, and add the check of your own that should have found it. When the same class comes back after your class fix, read `references/pstack/skills/principle-attack-the-premise/SKILL.md` before the next fix. A stop rule in your instruction files comes first (Authority). |
-| Continue after a context summary (compaction) | Before the next step, read `references/pstack/skills/poteto-mode/SKILL.md` again, and every playbook, principle and skill file that the summary or your task list names. The host may bring this file back after a summary; the files it sent you to come back only when you read them again. |
+| Continue after a context summary (compaction) | Before the next step, read `references/pstack/skills/poteto-mode/SKILL.md` again, and every playbook, principle and skill file that the summary or your task list names. The host may bring this file back after a summary; the files it sent you to come back only when you read them again. Where this plugin's hooks run, a notice that starts with `proof:` follows the summary, and the host refuses file edits and shell commands until you read the hub again in full. When the summary has no `proof:` notice beside it, the hooks are not active on this host: tell the user once per session, then do this row yourself. |
+| Split work into units for parallel subagents | The user's own orchestration skill when one exists (for example `task-graph`). Otherwise write a task file before any worker starts: the goal in one line, each unit with its own files and its acceptance check, the contracts between units, and the commands that prove the whole change. Workers follow the Economy worker contract. You collect: check each unit against its acceptance check and the contracts, then run the full proof. Then one review of the combined diff against the task file, by the reviewer the user's rules name, else as the Review route says. |
+| Prove an invariant, a race, a retry, a state machine or a parser where tests reach too little | Look in the folders of Verification step 1 for a project skill that runs a model checker, a prover or another formal verifier against named code. None: `references/pstack/skills/create-formal-verification-skill/SKILL.md`. One, and the code it checks has changed: `references/pstack/skills/maintain-formal-verification-skill/SKILL.md`. |
 | Research how code works or why it is built that way | pstack's Investigation playbook (`playbooks/investigation.md`), with pstack's how and why skills. |
 | Review a diff, branch or PR | The host's own review skill when the host lists one that reports findings without editing (for example Claude Code `code-review` without `--fix`, Codex `review-agent`, Grok `review`). Otherwise review it yourself, or with one fresh reviewer subagent. Report findings. Edit files, post comments or open a draft review on the PR only when the user asks. |
 | Create, repair or audit the project's verification skill | Find it with Verification step 1. None: `references/pstack/skills/create-verification-skill/SKILL.md`. One: `references/pstack/skills/maintain-verification-skill/SKILL.md`. |
@@ -84,27 +86,30 @@ Paths are relative to the plugin root, two folders above this file (`../../`). I
 |---|---|
 | the tdd skill | The `tdd` skill of this plugin. |
 | the `code-review` skill (named in `tdd`) | The Review route above. |
-| swarm, Orchestrate, Autopilot-full, Autopilot-stack | The user's own orchestration skill when one exists (for example `task-graph`). Otherwise: parallel subagents with exclusive files under the Economy worker contract, then one fresh reviewer. |
+| swarm, Orchestrate, Autopilot-full, Autopilot-stack | The parallel-units route above. |
 | "Use any MCP tool"; external actions proceed without asking | Reversible local work proceeds. Messages, posts, tickets, deploys, pushes and other actions outside the machine follow the host's permission rules. |
 | Any commit, "commit liberally", rebase, push, PR or merge step | Do it only when the user asked for it or the user's own instructions (instruction files, a skill the user runs) say to. Otherwise leave the change uncommitted and say so. |
 | Pause safely: the WIP commit | No commit. Write the resume note that `skills/handoff/SKILL.md` describes. |
 | Session pickup: trust the trail | Re-verify the current state before you build on it. |
 | `git show origin/main:pstack/<path>` (multi-phase plans) | Read `references/pstack/<path>` and write that path in the plan. `check-plan.mjs` then reports the missing `git show origin/main:` marker; ignore that one line. |
-| setup-pstack, `pstack-models.mdc`, model names, "explicit model per role", "Fresh subagents by default" | The user's model and subagent policy (for example a routing file their instructions name), else the Economy model tier. Never pass a model name taken from pstack text. |
+| setup-pstack, `pstack-models.mdc`, model names, "explicit model per role", "Match the model to the job", a reasoning level or fast or standard speed "per the Subagents section", "Fresh subagents by default" | The user's model and subagent policy (for example a routing file their instructions name) for the model, the effort and the speed, else the Economy model tier at the host's default effort and speed. Never pass a model name taken from pstack text. |
+| The goal restatement that opens a first message, a PR's `## Why` or a final report | Keep it, after any line the user's rules put first (for example a tier line). |
 | create-skill (Cursor built-in), the Authoring a skill playbook | The `writing-for-agents` skill. |
 | deslop (cursor-team-kit) | The unslop reference and a self-review of the diff. In Claude Code, also the `simplify` skill when it is listed. |
 | control-ui, control-cli (cursor-team-kit) | The project's verification skill (Verification section). Without one, drive the real surface with the host's own tools: a browser tool for web UIs, the shell for CLIs and TUIs. |
 | Bugbot, Origin, `gt` (Graphite) | Use them only when the repository already uses them. Default to `gh`. |
 | Broken skill mid-task: fix it in its own PR | Report the broken pstack line in one line and use the closest mapping here. Never edit files of this plugin. |
 | Point the user at `/create-verification-skill` or `/maintain-verification-skill` | Those commands do not exist. Tell the user to ask in words: "create the verification skill" or "audit the verification skill". |
-| teach, bro, reflect, automate-me, ketchup, poteto-help, make-bot-ui | Not installed. Skip them. |
+| teach, bro, reflect, automate-me, poteto-help, make-bot-ui, sharpen | Not installed. Skip them. |
+| Catch the user up per the ketchup or ketchup-video skill | Not installed. Write the reply as poteto-mode's Writing the reply says, with the content the playbook names. |
+| Read model-checker results with the statechart skill | Not installed. Give each violation the checker reports as its shortest trace, step by step in plain words. |
 
 ## Host map
 
 | pstack name | Claude Code | Codex | Other hosts |
 |---|---|---|---|
 | `Task`, any `subagent_type` | Agent tool with an agent type from the host's own list, chosen by the user's routing rules. Never pass a pstack `subagent_type` value such as `poteto-agent`. | A subagent. Ignore `subagent_type`. | The host's subagent tool, or do the step inline. |
-| Every subagent brief | Start with the absolute path of this file and say: read it first. For a `poteto-agent` delegate, add the path of `references/pstack/agents/poteto-agent.md` as the second file to read. | Same. | Same. |
+| Every subagent brief | Start with the absolute path of this file and say: read it first. For a `poteto-agent` delegate, add the absolute paths of `references/pstack/agents/poteto-agent.md` and of `references/pstack/skills/poteto-mode/SKILL.md` as the second and third files to read. | Same. | Same. |
 | `readonly: true` | A read-only agent type. | A read-only subagent or sandbox. | A read-only worker. |
 | `run_in_background: true` | `run_in_background`. | A background subagent where available. | Run it in the foreground. |
 | `environment: "cloud"` | Run locally. | Run locally. | Run locally. |
