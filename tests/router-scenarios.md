@@ -56,6 +56,7 @@ Using only that router file, answer each case in one line: the file, skill or se
 38. Host: Codex. The user says: "Split this change into four parallel units and run workers for them." The user's rules name no orchestration skill. What do you write before any worker starts, and who reviews at the end?
 39. Host: Claude Code. "Prove that the job queue never runs one job twice when a worker retries." No project skill runs a model checker or prover.
 40. Host: Claude Code. You are inside pstack text that says to use swarm to run the units. The user has a `task-graph` skill. Which do you use?
+41. Host: Claude Code. You are inside pstack's Feature playbook. The pstack text says to copy the playbook's steps in verbatim and to name each principle that shaped a decision in your reply. One step does not fit this task. What do you do with the steps, and do you name principles in the reply?
 ```
 
 ## Expected
@@ -92,7 +93,7 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 28 | Economy, refused merge: read the pull request's unresolved review threads, required checks and required approvals | No | No |
 | 29 | Economy, approvals: no; no tool result shows a prompt waiting | No | No |
 | 30 | Routes, escape: first `references/pstack/skills/correct/SKILL.md`, applied to that class now. Then a census of every instance of the class before the fix, and a check of your own that should have found it. | No | No |
-| 31 | Economy, review convergence: fix both. The defect is an escape: the Routes escape row, so its fix covers the whole class. The nit: fix it in `parse.rs` and in `emit.rs` (the same fault in every other place). | No | No |
+| 31 | Economy, review convergence: fix the defect. It is an escape: the Routes escape row, so its fix covers the whole class. The nit is not a defect: answer it with a reason or an issue link, and change neither `parse.rs` nor `emit.rs` for it. | No | No |
 | 32 | Routes, context summary: first `references/pstack/skills/poteto-mode/SKILL.md` (the hub), then `references/pstack/skills/poteto-mode/playbooks/bug-fix.md`, and every other playbook, principle and skill file that the summary or the task list names. | No | No |
 | 33 | Routes, escape, the same class after a class fix: `references/pstack/skills/principle-attack-the-premise/SKILL.md`, read before the next fix | No | No |
 | 34 | Not trivial: an escape always takes its route. First `references/pstack/skills/correct/SKILL.md`, applied to that class, then a census of the class | No | No |
@@ -102,6 +103,7 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 38 | Routes, parallel units: first a task file (the goal in one line, each unit with its files and acceptance check, the contracts, the proving commands). Workers under the Economy worker contract; you collect and run the full proof; then one review of the combined diff against the task file, by the reviewer the user's rules name, else the Review route. | No | No |
 | 39 | Routes, formal proof: no project formal-verification skill, so `references/pstack/skills/create-formal-verification-skill/SKILL.md` | No | No |
 | 40 | Overrides, swarm: the parallel-units route, so the user's `task-graph` skill | No | No |
+| 41 | Overrides, playbook steps and principles: use the playbook's steps as the default order, and skip the step that does not fit with a one-line reason. No principle names in the reply. | No | No |
 
 ## Install cases
 
