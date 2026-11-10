@@ -5,6 +5,16 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-10
+
+### Changed
+
+- Router: review convergence is one rule for every round: fix defects, and the same fault in every other place in the change; answer the rest with a reason or an issue link. Rounds 1 and 2 no longer fix every finding: a finding that is not a defect cost a push and a new review each time (owner, 10 Nov 2026).
+- Router: an Overrides row for pstack's "copy its steps in verbatim" and "name each principle that shaped a decision": the playbook's steps are the default order, a step is skipped only when it does not fit the task, with a one-line reason, a step the playbook marks mandatory stays, and the reply cites no principles (owner, 10 Nov 2026).
+- `tests/router-scenarios.md`: case 31 follows the new round rule (the nit gets a reason or an issue link); cases 41 and 42 for the new override (a step that does not fit; every step fits).
+
+Upstream: pstack 0.15.36 (`c742dd6`), mattpocock/skills v1.3.2 (`d1478fc`).
+
 ## [0.7.0] - 2026-11-07
 
 ### Added
