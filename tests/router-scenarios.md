@@ -57,6 +57,7 @@ Using only that router file, answer each case in one line: the file, skill or se
 39. Host: Claude Code. "Prove that the job queue never runs one job twice when a worker retries." No project skill runs a model checker or prover.
 40. Host: Claude Code. You are inside pstack text that says to use swarm to run the units. The user has a `task-graph` skill. Which do you use?
 41. Host: Claude Code. You are inside pstack's Feature playbook. The pstack text says to copy the playbook's steps in verbatim and to name each principle that shaped a decision in your reply. One step does not fit this task. What do you do with the steps, and do you name principles in the reply?
+42. Host: Claude Code. You are inside pstack's Refactoring playbook. Every step fits this task, and one step is marked mandatory. Do you skip a step?
 ```
 
 ## Expected
@@ -104,6 +105,7 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 39 | Routes, formal proof: no project formal-verification skill, so `references/pstack/skills/create-formal-verification-skill/SKILL.md` | No | No |
 | 40 | Overrides, swarm: the parallel-units route, so the user's `task-graph` skill | No | No |
 | 41 | Overrides, playbook steps and principles: use the playbook's steps as the default order, and skip the step that does not fit with a one-line reason. No principle names in the reply. | No | No |
+| 42 | Overrides, playbook steps and principles: no. Every step fits, so every step runs in the default order, and the mandatory step stays. | No | No |
 
 ## Install cases
 
