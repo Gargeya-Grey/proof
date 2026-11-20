@@ -65,7 +65,8 @@ Use the plugin command of your host where it has one. `npx skills add` installs 
 .agents/plugins/marketplace.json    Codex marketplace
 plugins/proof/
   .claude-plugin/plugin.json        Claude Code manifest (version source of truth)
-  plugin.json                       Agent Plugins manifest (Codex reads it)
+  .codex-plugin/plugin.json         Codex manifest (D19)
+  plugin.json                       Root manifest for Antigravity and other hosts; no "$schema" (D19)
   skills/work/                      The router: this repo's own text
   hooks/                            Summary hooks: this repo's own code (D17)
   skills/<5 Matt Pocock skills>/    Vendored, unchanged

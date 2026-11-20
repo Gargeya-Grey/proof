@@ -68,9 +68,9 @@ The rewrite at `~/plugins/pstack` (0.15.5+codex) edited upstream text by hand. I
 
 pstack spawns delegates that read only `poteto-mode/SKILL.md`. A delegate that never reads the router follows the vendored text unchanged (for example "Use any MCP tool"). So the router's Host map says: every subagent brief starts with the router's absolute path.
 
-## D9. One Codex manifest
+## D9. One Codex manifest (replaced by D19)
 
-Codex 0.162.1 installs `proof` from the root `plugin.json` alone (verified on 2026-10-12 in an isolated `CODEX_HOME`). So there is no `.codex-plugin/plugin.json`. A second manifest would duplicate fields and could drift. Add it only if an older Codex client must load the plugin.
+Codex 0.162.1 installed `proof` from the root `plugin.json` alone (verified on 2026-10-12 in an isolated `CODEX_HOME`), so there was no `.codex-plugin/plugin.json`. Codex 0.171.0 reads that root file as an Agent Plugins manifest and then loads no hooks. D19 adds `.codex-plugin/plugin.json`; `tools/release.py` keeps the three manifests' versions equal, and `tests/test_plugin.py` keeps their name and description equal.
 
 ## D10. Versions and releases
 
@@ -150,7 +150,7 @@ What each host enforces (2026-11-07):
 | Host | PreCompact list | Notice after the summary | Edit gate | Status |
 |---|---|---|---|---|
 | Claude Code 2.1 | Yes | Yes | Yes | Verified with real `/compact` runs (`claude -p --plugin-dir`, haiku). First version: the summary had the section, a main-agent Write was denied, a subagent Write was allowed, and a Read of the hub opened the gate. Final version (2026-11-07): in a session that loaded `work`, a Bash write after the compact was denied, the agent read the hub by itself and the retry ran; in a session that never used proof, no marker was written and the Bash write ran. In Git Bash, set `MSYS_NO_PATHCONV=1` for such a probe, or `/compact` becomes a file path. |
-| Codex 0.167 | No: Codex ignores PreCompact output | Yes, after the user trusts the hooks | Yes, after the user trusts the hooks | From the Codex docs; not run on a real Codex, because the only run without the interactive trust review needs a bypass flag. Each hook has a `commandWindows` form that needs only `PLUGIN_ROOT`; it was run under cmd.exe and PowerShell 5.1. |
+| Codex 0.167 | No: Codex ignores PreCompact output | Yes, after the user trusts the hooks | Yes, after the user trusts the hooks | From the Codex docs; not run on a real Codex, because the only run without the interactive trust review needs a bypass flag. Codex 0.171.0 loaded none of these hooks until 0.8.2 (D19). Each hook has a `commandWindows` form that needs only `PLUGIN_ROOT`; it was run under cmd.exe and PowerShell 5.1. |
 | Grok | No | No | No | Grok fires only PreCompact and PostCompact at a summary and has no path to add context. |
 | Other Agent Skills hosts | No | No | No | No hook support assumed. |
 
@@ -181,6 +181,17 @@ Known limits (not checked unless stated):
 Antigravity (the `agy` CLI and the desktop app) gets its own Host map column, because its tool names differ from every other host: `invoke_subagent` with a `TypeName`, `ask_question`, `schedule`, a `task.md` artifact per conversation, and transcripts at `<brain>/<conversation id>/.system_generated/logs/transcript.jsonl`. The desktop app's `<brain>` is `~/.gemini/antigravity/brain`; the `agy` CLI's is `~/.gemini/antigravity-cli/brain` (Codex review, 2026-11-20; checked against a CLI run that day). The names come from the owner's own Antigravity transcripts and the built-in docs, read on 2026-11-20. Whether `invoke_subagent` waits for the subagent was not established, so the column names the tool and leaves the wait to the host.
 
 `agy plugin install <folder>` copies `plugins/proof` to `~/.gemini/config/plugins/proof`. It treats a folder with a root `plugin.json` as a native plugin and does not stage `hooks/hooks.json`, so the D17 hooks never run there. Antigravity also has no compaction event. The router's context-summary row covers it: the agent says once per session that the hooks are not active, and reloads by itself. `tools/doctor.py` compares that copy's router with the repository's.
+
+## D19. Codex reads `.codex-plugin/plugin.json`
+
+In Codex 0.171.0 the Hooks screen listed no `proof` hooks. The cause is in Codex's own code ([`loader.rs`](https://github.com/openai/codex/blob/rust-v0.171.0/codex-rs/core-plugins/src/loader.rs#L887-L901) and `utils/plugins/src/plugin_namespace.rs`, read on 2026-11-20):
+
+- Codex checks the root `plugin.json` first. When its `"$schema"` is on `agent-plugins.org`, Codex reads the plugin as an Agent Plugins manifest and loads its skills, but returns no hooks and no warning.
+- Otherwise Codex takes the first of `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json` and `.cursor-plugin/plugin.json`. That format loads `hooks/hooks.json` when the manifest names no `hooks` path.
+
+So the root `plugin.json` carries no `"$schema"`, and `.codex-plugin/plugin.json` holds the Codex manifest with the `interface` block that used to sit under `extensions.com.openai`. It names no `hooks` or `skills` path, so the defaults apply. Antigravity still reads the root file: `agy plugin validate` passes without the `"$schema"` and still finds the six skills and no hooks. `tests/test_plugin.py` fails when the root file gets a `"$schema"` back.
+
+Checked on the owner's machine on 2026-11-20 with Codex's own `hooks/list` call (`codex app-server`): before the change, 0 hooks; after it, the 4 `proof` hooks (PreToolUse, PostToolUse, PreCompact, SessionStart), each untrusted until the owner trusts it with `/hooks`. Whether the notice arrives after a real `/compact` needs that trust, so it was not run here.
 
 ## Skills that stay outside the plugin
 

@@ -39,7 +39,7 @@ To take one exact commit instead, run `update --source <name> --to <sha>`. A lat
 
 ### Version rules
 
-`proof` uses Semantic Versioning. The version lives in `plugins/proof/.claude-plugin/plugin.json`; `tools/release.py` copies it into `plugins/proof/plugin.json`.
+`proof` uses Semantic Versioning. The version lives in `plugins/proof/.claude-plugin/plugin.json`; `tools/release.py` copies it into `plugins/proof/.codex-plugin/plugin.json` and `plugins/proof/plugin.json`.
 
 | Bump | When |
 |---|---|

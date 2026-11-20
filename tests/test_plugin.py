@@ -26,9 +26,8 @@ BROKEN_UPSTREAM = {
     ("references/pstack/skills/create-formal-verification-skill/SKILL.md", "../statechart/SKILL.md"): "not vendored",
 }
 
-CODEX_SCHEMA_KEYS = {
-    "$schema", "name", "version", "description", "author", "homepage",
-    "repository", "license", "keywords", "extensions",
+ROOT_MANIFEST_KEYS = {
+    "name", "version", "description", "author", "homepage", "repository", "license", "keywords",
 }
 
 
@@ -91,6 +90,7 @@ class ManifestTests(unittest.TestCase):
         paths = [
             PLUGIN / ".claude-plugin" / "plugin.json",
             PLUGIN / "plugin.json",
+            PLUGIN / ".codex-plugin" / "plugin.json",
             ROOT / ".claude-plugin" / "marketplace.json",
             ROOT / ".agents" / "plugins" / "marketplace.json",
         ]
@@ -104,24 +104,36 @@ class ManifestTests(unittest.TestCase):
         for key in ("skills", "agents", "commands", "hooks", "mcpServers"):
             self.assertNotIn(key, m, f"component key {key} would change what the host scans")
 
-    def test_02_codex_manifest_matches_schema(self):
+    def test_02_root_manifest_has_no_agent_plugins_schema(self):
+        """Codex reads a root plugin.json first when its "$schema" is on agent-plugins.org, and then
+        loads no hooks at all (Codex 0.171.0, DECISIONS.md D19). Antigravity reads this file without one."""
         m = read_json(PLUGIN / "plugin.json")
-        extra = set(m) - CODEX_SCHEMA_KEYS
-        self.assertEqual(extra, set(), f"top-level keys the schema does not allow: {extra}")
-        self.assertEqual(m["$schema"], "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json")
+        self.assertNotIn("$schema", m)
+        extra = set(m) - ROOT_MANIFEST_KEYS
+        self.assertEqual(extra, set(), f"unexpected top-level keys: {extra}")
         self.assertEqual(m["name"], "proof")
         self.assertRegex(m["name"], r"^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$")
         self.assertEqual(set(m["author"]) - {"name", "email", "url"}, set())
-        iface = m["extensions"]["com.openai"]["interface"]
+
+    def test_02_codex_manifest_keeps_default_hook_and_skill_paths(self):
+        """With no "hooks" or "skills" key, Codex loads hooks/hooks.json and scans skills/."""
+        m = read_json(PLUGIN / ".codex-plugin" / "plugin.json")
+        self.assertEqual(m["name"], "proof")
+        for key in ("skills", "hooks", "mcpServers", "apps", "$schema"):
+            self.assertNotIn(key, m, f"{key} would change what Codex loads")
+        self.assertTrue((PLUGIN / "hooks" / "hooks.json").is_file())
+        iface = m["interface"]
         self.assertLessEqual(len(iface["shortDescription"]), MAX_SHORT_DESCRIPTION)
         self.assertEqual(iface["category"], "Developer Tools")
         self.assertEqual(len(iface["defaultPrompt"]), 2)
 
     def test_02_manifests_agree(self):
         a = read_json(PLUGIN / ".claude-plugin" / "plugin.json")
-        b = read_json(PLUGIN / "plugin.json")
-        for k in ("name", "version", "description"):
-            self.assertEqual(a[k], b[k], k)
+        for other in (PLUGIN / "plugin.json", PLUGIN / ".codex-plugin" / "plugin.json"):
+            b = read_json(other)
+            for k in ("name", "version", "description"):
+                with self.subTest(manifest=other.relative_to(PLUGIN).as_posix(), key=k):
+                    self.assertEqual(a[k], b[k])
 
     def test_02_marketplaces_point_at_plugin(self):
         c = read_json(ROOT / ".claude-plugin" / "marketplace.json")

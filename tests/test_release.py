@@ -13,11 +13,12 @@ from toolload import ROOT, load
 release = load("release")
 
 CLAUDE = "plugins/proof/.claude-plugin/plugin.json"
-CODEX = "plugins/proof/plugin.json"
+CODEX = "plugins/proof/.codex-plugin/plugin.json"
+AGENT = "plugins/proof/plugin.json"
 
 CLAUDE_TEXT = '{\n  "name": "proof",\n  "version": "0.1.0",\n  "description": "d",\n  "keywords": ["a"]\n}\n'
-CODEX_TEXT = ('{\n  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n'
-              '  "name": "proof",\n  "version": "0.1.0",\n  "extensions": {"com.openai": {"interface": {}}}\n}\n')
+CODEX_TEXT = '{\n  "name": "proof",\n  "version": "0.1.0",\n  "interface": {"displayName": "proof"}\n}\n'
+AGENT_TEXT = '{\n  "name": "proof",\n  "version": "0.1.0",\n  "license": "MIT"\n}\n'
 VENDOR = {
     "sources": {
         "pstack": {"label": "pstack", "version": "0.15.20", "sha": "1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def"},
@@ -34,10 +35,11 @@ CHANGELOG = (TITLE + "## [Unreleased]\n\n### Added\n\n- New thing.\n\n### Fixed\
 ROUTER = "plugins/proof/skills/work/SKILL.md"
 
 
-def make_root(tmp, claude=CLAUDE_TEXT, codex=CODEX_TEXT, changelog=CHANGELOG, vendor=VENDOR, lock=True):
+def make_root(tmp, claude=CLAUDE_TEXT, codex=CODEX_TEXT, changelog=CHANGELOG, vendor=VENDOR, lock=True,
+              agent=AGENT_TEXT):
     """A fixture tree. lock=True records the digest of the tree for version 0.1.0, as a release does."""
     root = Path(tmp)
-    for rel, text in ((CLAUDE, claude), (CODEX, codex), ("CHANGELOG.md", changelog),
+    for rel, text in ((CLAUDE, claude), (CODEX, codex), (AGENT, agent), ("CHANGELOG.md", changelog),
                       ("vendor.json", json.dumps(vendor)), (ROUTER, "# Work\n")):
         if text is None:
             continue
@@ -89,12 +91,13 @@ class BumpTests(unittest.TestCase):
         out.__enter__()
         self.addCleanup(out.__exit__, None, None, None)
 
-    def test_bump_minor_writes_all_three_files(self):
+    def test_bump_minor_writes_every_manifest_and_the_changelog(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(tmp)
             self.assertEqual(release.cmd_bump(root, "minor", "2026-11-01", False), 0)
             self.assertEqual((root / CLAUDE).read_text(encoding="utf-8"), CLAUDE_TEXT.replace("0.1.0", "0.2.0"))
             self.assertEqual((root / CODEX).read_text(encoding="utf-8"), CODEX_TEXT.replace("0.1.0", "0.2.0"))
+            self.assertEqual((root / AGENT).read_text(encoding="utf-8"), AGENT_TEXT.replace("0.1.0", "0.2.0"))
             expected = (TITLE + "## [Unreleased]\n\n## [0.2.0] - 2026-11-01\n\n### Added\n\n- New thing.\n\n"
                         "### Fixed\n\n- Old bug.\n\n" + UPSTREAM + "\n\n"
                         "## [0.1.0] - 2026-10-12\n\n### Added\n\n- First build.\n\n" + UPSTREAM + "\n")
@@ -123,6 +126,11 @@ class BumpTests(unittest.TestCase):
             root = make_root(tmp, codex=CODEX_TEXT.replace("0.1.0", "0.1.1"))
             with self.assertRaises(release.ReleaseError):
                 release.cmd_bump(root, "patch", "2026-11-01", False)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp, agent=AGENT_TEXT.replace("0.1.0", "0.1.1"))
+            with self.assertRaises(release.ReleaseError):
+                release.cmd_bump(root, "patch", "2026-11-01", False)
+            self.assertIn(AGENT, " ".join(release.check_problems(root)))
         with tempfile.TemporaryDirectory() as tmp:
             root = make_root(tmp)
             for bad in ("2026-13-01", "11/01/2026", "2026-1-1"):
