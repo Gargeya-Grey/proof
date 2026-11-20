@@ -176,6 +176,12 @@ Known limits (not checked unless stated):
 - Codex: whether tool events carry `agent_id` inside a subagent is not documented. If not, a subagent's edit is gated until it reads the hub itself.
 - Codex skips untrusted plugin hooks without a notice. After an install or an update, the user trusts them once with `/hooks` (docs/maintaining.md).
 
+## D18. Antigravity
+
+Antigravity (the `agy` CLI and the desktop app) gets its own Host map column, because its tool names differ from every other host: `invoke_subagent` with a `TypeName`, `ask_question`, `schedule`, a `task.md` artifact per conversation, and transcripts at `~/.gemini/antigravity/brain/<conversation id>/.system_generated/logs/transcript.jsonl`. The names come from the owner's own Antigravity transcripts and the built-in docs, read on 2026-11-20. Whether `invoke_subagent` waits for the subagent was not established, so the column names the tool and leaves the wait to the host.
+
+`agy plugin install <folder>` copies `plugins/proof` to `~/.gemini/config/plugins/proof`. It treats a folder with a root `plugin.json` as a native plugin and does not stage `hooks/hooks.json`, so the D17 hooks never run there. Antigravity also has no compaction event. The router's context-summary row covers it: the agent says once per session that the hooks are not active, and reloads by itself.
+
 ## Skills that stay outside the plugin
 
 The owner's `task-graph`, `board` and `routing` skills stay in `~/.claude/skills`. They depend on Claude Code files (`model-routing.md`, the graph renderer, a metrics script, a Codex review hook in another repository), so they are not portable, and a copy in the plugin would fail for other users without a sign. The portable core of `task-graph` is in the router as the parallel-units route (2026-11-07): a task file with units, owned files, acceptance checks and contracts, a collector, and one review of the combined diff against the task file by the reviewer the user's rules name. The owner's evidence for keeping it small: 14 of 74 logged Tier 2 runs used workers. The router still names `task-graph` as the example of a user's own orchestration skill, which comes first.

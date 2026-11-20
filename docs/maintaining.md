@@ -73,6 +73,7 @@ To test changes before a release, install from your local clone. The marketplace
 | Claude Code | `claude plugin marketplace add <clone path>`, then `claude plugin install proof@gargeya-grey` | Loads in place. Start a new session or run `/reload-plugins`. |
 | Codex | `codex plugin marketplace add <clone path>`, then `codex plugin add proof@gargeya-grey` | Codex keeps a copy. Run `codex plugin add proof@gargeya-grey` again, then start a new session. |
 | Grok | Nothing. Grok reads Claude Code's plugin settings (`[compat.claude]`, on by default), so it loads `proof` in place. | Start a new session. |
+| Antigravity | `agy plugin install <clone path>/plugins/proof` (to `~/.gemini/config/plugins/proof`) | Antigravity keeps a copy. Run the install again, then start a new session. |
 | Other Agent Skills hosts | Copy the files from `<clone path>/plugins/proof/` side by side, as in [README.md](../README.md#install). | Delete the old copies, copy again, then start a new session. |
 
 To see which copy each host really runs, run `python -I tools/doctor.py`. It reads the host's own record (Claude Code transcripts, the Codex install folder), not a cache folder, and says what to do when a copy differs from this repository. Do not judge the loaded copy from `~/.claude/plugins/cache/`: a local-folder marketplace loads in place and leaves an old cache folder behind.
