@@ -12,6 +12,8 @@ the host's own record:
 - Codex: every installed copy under <codex home>/plugins/cache/<marketplace>/proof/<version>/
   (`local` for a local plugin), narrowed to the marketplace that config.toml enables. Codex does
   not record which version folder runs, so each copy is compared.
+- Antigravity: the copy that `agy plugin install` writes to ~/.gemini/config/plugins/proof/, the
+  folder Antigravity loads global plugins from. A workspace's .agents/plugins is not checked.
 
 The host folders are CLAUDE_CONFIG_DIR and CODEX_HOME when set, as the hosts read them, else
 ~/.claude and ~/.codex. A user-level disable is noted, not trusted: a project's settings can
@@ -199,6 +201,13 @@ def host_dirs(home=None):
     return Path(claude), Path(codex)
 
 
+def antigravity_copy(home=None):
+    """The global Antigravity copy (<home>/.gemini/config/plugins/proof), or None."""
+    user = Path(home) if home is not None else Path(os.path.expanduser("~"))
+    root = user / ".gemini" / "config" / "plugins" / "proof"
+    return root if root.is_dir() else None
+
+
 def report(home, repo):
     """Return (lines, exit code). home=None reads the folders the hosts use (host_dirs)."""
     want = router_digest(Path(repo) / "plugins" / "proof")
@@ -248,6 +257,17 @@ def report(home, repo):
             code = 1
             lines.append(f"codex: {', '.join(str(c) for c in differ)}: router DIFFERS from this repository{note}. "
                          "Run `codex plugin add proof@gargeya-grey`, then start a new session")
+
+    copy = antigravity_copy(home)
+    if copy is None:
+        lines.append("antigravity: no installed proof copy found in .gemini/config/plugins "
+                     "(a workspace's .agents/plugins is not checked)")
+    elif router_digest(copy) == want:
+        lines.append(f"antigravity: runs {copy}; router same as this repository")
+    else:
+        code = 1
+        lines.append(f"antigravity: {copy}: router DIFFERS from this repository. "
+                     f"Run `agy plugin install \"{Path(repo) / 'plugins' / 'proof'}\"`, then start a new session")
 
     lines.append("grok: reads Claude Code's plugin settings, so it loads the copy on the claude line (DECISIONS.md D12)")
     return lines, code

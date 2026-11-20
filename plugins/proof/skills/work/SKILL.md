@@ -118,4 +118,4 @@ Paths are relative to the plugin root, two folders above this file (`../../`). I
 | todolist | The task or todo tool. | The plan tool. | The conversation's `task.md` artifact. | A checklist in the reply. |
 | `/loop` | `/loop`. | An automation or a monitor loop. | The `schedule` tool. | The host's scheduler. |
 | `.cursor/` paths (a verification skill: see Verification) | `.claude/` | `.agents/` for skills, `.codex/` for config. | `.agents/` for skills, `~/.gemini/config/` for global config. | The host's config folder. |
-| `agent-transcripts/` | `~/.claude/projects/` | `~/.codex/sessions/` | `~/.gemini/antigravity/brain/<conversation id>/.system_generated/logs/transcript.jsonl` | The host's transcript store. |
+| `agent-transcripts/` | `~/.claude/projects/` | `~/.codex/sessions/` | `<brain>/<conversation id>/.system_generated/logs/transcript.jsonl`, where `<brain>` is `~/.gemini/antigravity/brain` in the desktop app and `~/.gemini/antigravity-cli/brain` in the `agy` CLI. | The host's transcript store. |

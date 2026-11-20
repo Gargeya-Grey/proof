@@ -108,6 +108,28 @@ class DoctorTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(lines[0].startswith("claude: no proof router load found"))
         self.assertTrue(any(l.startswith("codex: no installed proof copy") for l in lines))
+        self.assertTrue(any(l.startswith("antigravity: no installed proof copy") for l in lines))
+
+    def antigravity(self, text=ROUTER):
+        return plugin(self.home / ".gemini" / "config" / "plugins" / "proof", text)
+
+    def test_antigravity_copy_that_matches_passes(self):
+        copy = self.antigravity()
+        lines, code = self.run_report()
+        self.assertEqual(code, 0)
+        line = next(l for l in lines if l.startswith("antigravity:"))
+        self.assertIn(f"runs {copy}", line)
+        self.assertIn("same as this repository", line)
+
+    def test_antigravity_stale_copy_fails_with_the_fix(self):
+        """A stale copy left by an older `agy plugin install` must fail, not pass silently
+        (Codex review, 2026-11-20)."""
+        self.antigravity("# Work\n\nold\n")
+        lines, code = self.run_report()
+        self.assertEqual(code, 1)
+        line = next(l for l in lines if l.startswith("antigravity:"))
+        self.assertIn("router DIFFERS", line)
+        self.assertIn("agy plugin install", line)
 
     def test_crlf_router_counts_as_the_same(self):
         live = plugin(self.base / "crlf" / "plugins" / "proof")

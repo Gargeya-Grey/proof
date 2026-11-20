@@ -178,9 +178,9 @@ Known limits (not checked unless stated):
 
 ## D18. Antigravity
 
-Antigravity (the `agy` CLI and the desktop app) gets its own Host map column, because its tool names differ from every other host: `invoke_subagent` with a `TypeName`, `ask_question`, `schedule`, a `task.md` artifact per conversation, and transcripts at `~/.gemini/antigravity/brain/<conversation id>/.system_generated/logs/transcript.jsonl`. The names come from the owner's own Antigravity transcripts and the built-in docs, read on 2026-11-20. Whether `invoke_subagent` waits for the subagent was not established, so the column names the tool and leaves the wait to the host.
+Antigravity (the `agy` CLI and the desktop app) gets its own Host map column, because its tool names differ from every other host: `invoke_subagent` with a `TypeName`, `ask_question`, `schedule`, a `task.md` artifact per conversation, and transcripts at `<brain>/<conversation id>/.system_generated/logs/transcript.jsonl`. The desktop app's `<brain>` is `~/.gemini/antigravity/brain`; the `agy` CLI's is `~/.gemini/antigravity-cli/brain` (Codex review, 2026-11-20; checked against a CLI run that day). The names come from the owner's own Antigravity transcripts and the built-in docs, read on 2026-11-20. Whether `invoke_subagent` waits for the subagent was not established, so the column names the tool and leaves the wait to the host.
 
-`agy plugin install <folder>` copies `plugins/proof` to `~/.gemini/config/plugins/proof`. It treats a folder with a root `plugin.json` as a native plugin and does not stage `hooks/hooks.json`, so the D17 hooks never run there. Antigravity also has no compaction event. The router's context-summary row covers it: the agent says once per session that the hooks are not active, and reloads by itself.
+`agy plugin install <folder>` copies `plugins/proof` to `~/.gemini/config/plugins/proof`. It treats a folder with a root `plugin.json` as a native plugin and does not stage `hooks/hooks.json`, so the D17 hooks never run there. Antigravity also has no compaction event. The router's context-summary row covers it: the agent says once per session that the hooks are not active, and reloads by itself. `tools/doctor.py` compares that copy's router with the repository's.
 
 ## Skills that stay outside the plugin
 
