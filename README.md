@@ -1,6 +1,6 @@
 # proof
 
-A verification-first engineering workflow for coding agents. One plugin that works the same way on Claude Code, Codex, Grok and other Agent Skills hosts.
+A verification-first engineering workflow for coding agents. One plugin that works the same way on Claude Code, Codex, Grok, Antigravity and other Agent Skills hosts.
 
 By [Gargeya Sharma](https://github.com/Gargeya-Grey).
 
@@ -38,7 +38,7 @@ A long session gets summarized, and the files an agent read leave its context. O
 |---|---|
 | Claude Code | Active after install. |
 | Codex | Active after you trust them once: run `/hooks` and trust the `proof` hooks after each install or update. |
-| Grok, other hosts | None. The agent reports that the hooks are not active. |
+| Grok, Antigravity, other hosts | None. The agent reports that the hooks are not active. |
 
 DECISIONS.md D17 has the details and the limits. To see which copy of `proof` each host runs, run `python -I tools/doctor.py` in this repository.
 
@@ -49,6 +49,7 @@ DECISIONS.md D17 has the details and the limits. To see which copy of `proof` ea
 | Claude Code | `claude plugin marketplace add Gargeya-Grey/proof`, then `claude plugin install proof@gargeya-grey` | `claude plugin marketplace update gargeya-grey`, then `claude plugin update proof@gargeya-grey` |
 | Codex | `codex plugin marketplace add Gargeya-Grey/proof`, then `codex plugin add proof@gargeya-grey` | `codex plugin marketplace upgrade`, then `codex plugin add proof@gargeya-grey` |
 | Grok | `grok plugin install Gargeya-Grey/proof#plugins/proof`, then confirm the trust question (or add `--trust`) | `grok plugin update` |
+| Antigravity | `git clone https://github.com/Gargeya-Grey/proof "<clone>"`, then `agy plugin install "<clone>/plugins/proof"` | `git -C "<clone>" pull`, then `agy plugin install "<clone>/plugins/proof"` again |
 | Other Agent Skills hosts | `git clone https://github.com/Gargeya-Grey/proof`, then copy the files side by side (below) | `git pull`, delete the old copies, then copy again |
 
 Start a new session after an install or an update. Grok also reads Claude Code's plugins, so with `proof` in Claude Code, Grok needs no install of its own.

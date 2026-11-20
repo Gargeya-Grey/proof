@@ -107,15 +107,15 @@ Paths are relative to the plugin root, two folders above this file (`../../`). I
 
 ## Host map
 
-| pstack name | Claude Code | Codex | Other hosts |
-|---|---|---|---|
-| `Task`, any `subagent_type` | Agent tool with an agent type from the host's own list, chosen by the user's routing rules. Never pass a pstack `subagent_type` value such as `poteto-agent`. | A subagent. Ignore `subagent_type`. | The host's subagent tool, or do the step inline. |
-| Every subagent brief | Start with the absolute path of this file and say: read it first. For a `poteto-agent` delegate, add the absolute paths of `references/pstack/agents/poteto-agent.md` and of `references/pstack/skills/poteto-mode/SKILL.md` as the second and third files to read. | Same. | Same. |
-| `readonly: true` | A read-only agent type. | A read-only subagent or sandbox. | A read-only worker. |
-| `run_in_background: true` | `run_in_background`. | A background subagent where available. | Run it in the foreground. |
-| `environment: "cloud"` | Run locally. | Run locally. | Run locally. |
-| `AskQuestion` | AskUserQuestion. | Ask in chat. | Ask in chat. |
-| todolist | The task or todo tool. | The plan tool. | A checklist in the reply. |
-| `/loop` | `/loop`. | An automation or a monitor loop. | The host's scheduler. |
-| `.cursor/` paths (a verification skill: see Verification) | `.claude/` | `.agents/` for skills, `.codex/` for config. | The host's config folder. |
-| `agent-transcripts/` | `~/.claude/projects/` | `~/.codex/sessions/` | The host's transcript store. |
+| pstack name | Claude Code | Codex | Antigravity | Other hosts |
+|---|---|---|---|---|
+| `Task`, any `subagent_type` | Agent tool with an agent type from the host's own list, chosen by the user's routing rules. Never pass a pstack `subagent_type` value such as `poteto-agent`. | A subagent. Ignore `subagent_type`. | `invoke_subagent` with a `TypeName` from the host's own list. Never pass a pstack `subagent_type` value. | The host's subagent tool, or do the step inline. |
+| Every subagent brief | Start with the absolute path of this file and say: read it first. For a `poteto-agent` delegate, add the absolute paths of `references/pstack/agents/poteto-agent.md` and of `references/pstack/skills/poteto-mode/SKILL.md` as the second and third files to read. | Same. | Same. | Same. |
+| `readonly: true` | A read-only agent type. | A read-only subagent or sandbox. | A read-only `TypeName`, such as `research`. | A read-only worker. |
+| `run_in_background: true` | `run_in_background`. | A background subagent where available. | `invoke_subagent`. | Run it in the foreground. |
+| `environment: "cloud"` | Run locally. | Run locally. | Run locally. | Run locally. |
+| `AskQuestion` | AskUserQuestion. | Ask in chat. | `ask_question`. | Ask in chat. |
+| todolist | The task or todo tool. | The plan tool. | The conversation's `task.md` artifact. | A checklist in the reply. |
+| `/loop` | `/loop`. | An automation or a monitor loop. | The `schedule` tool. | The host's scheduler. |
+| `.cursor/` paths (a verification skill: see Verification) | `.claude/` | `.agents/` for skills, `.codex/` for config. | `.agents/` for skills, `~/.gemini/config/` for global config. | The host's config folder. |
+| `agent-transcripts/` | `~/.claude/projects/` | `~/.codex/sessions/` | `<brain>/<conversation id>/.system_generated/logs/transcript.jsonl`, where `<brain>` is `~/.gemini/antigravity/brain` in the desktop app and `~/.gemini/antigravity-cli/brain` in the `agy` CLI. | The host's transcript store. |

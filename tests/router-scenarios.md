@@ -58,6 +58,9 @@ Using only that router file, answer each case in one line: the file, skill or se
 40. Host: Claude Code. You are inside pstack text that says to use swarm to run the units. The user has a `task-graph` skill. Which do you use?
 41. Host: Claude Code. You are inside pstack's Feature playbook. The pstack text says to copy the playbook's steps in verbatim and to name each principle that shaped a decision in your reply. One step does not fit this task. What do you do with the steps, and do you name principles in the reply?
 42. Host: Claude Code. You are inside pstack's Refactoring playbook. Every step fits this task, and one step is marked mandatory. Do you skip a step?
+43. Host: Antigravity. pstack text tells you to start a `Task` with `subagent_type: "poteto-agent"` and `readonly: true` to review a diff. Which tool and type do you use, and what does the brief start with?
+44. Host: Antigravity. pstack text tells you to `AskQuestion` about a product choice that no experiment can settle, and to keep a todolist. Which tool asks, and where does the list go?
+45. Host: Antigravity. The conversation continues from a summary of earlier context. No message that starts with `proof:` follows the summary. What do you tell the user, and what do you read?
 ```
 
 ## Expected
@@ -106,6 +109,9 @@ Using only that router file, answer each case in one line: the file, skill or se
 | 40 | Overrides, swarm: the parallel-units route, so the user's `task-graph` skill | No | No |
 | 41 | Overrides, playbook steps and principles: use the playbook's steps as the default order, and skip the step that does not fit with a one-line reason. No principle names in the reply. | No | No |
 | 42 | Overrides, playbook steps and principles: no. Every step fits, so every step runs in the default order, and the mandatory step stays. | No | No |
+| 43 | Host map, Antigravity: `invoke_subagent` with a read-only `TypeName` such as `research`, not `poteto-agent`. The brief starts with the absolute path of the router (read it first), then `references/pstack/agents/poteto-agent.md` and `references/pstack/skills/poteto-mode/SKILL.md`. | No | No |
+| 44 | Host map, Antigravity: `ask_question` for the product choice; the list goes in the conversation's `task.md` artifact | Yes, with `ask_question` | No |
+| 45 | Routes, context summary: tell the user once per session that the hooks are not active on this host. Then read `references/pstack/skills/poteto-mode/SKILL.md` again, and every file that the summary or the task list names. | No (it tells the user once; it asks nothing) | No |
 
 ## Install cases
 

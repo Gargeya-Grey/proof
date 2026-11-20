@@ -5,6 +5,17 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-20
+
+### Added
+
+- Router: an Antigravity column in the Host map: `invoke_subagent` with a `TypeName` (`research` for read-only work), `ask_question`, the conversation's `task.md` artifact, the `schedule` tool, `.agents/` and `~/.gemini/config/`, and the transcript paths of the desktop app (`~/.gemini/antigravity/brain/`) and the `agy` CLI (`~/.gemini/antigravity-cli/brain/`). DECISIONS.md D18.
+- README and docs/maintaining.md: install and refresh rows for Antigravity (`agy plugin install`, path quoted; `git -C` for the pull); Antigravity runs no `proof` hooks.
+- `tools/doctor.py`: an `antigravity:` line that compares the copy in `~/.gemini/config/plugins/proof` with this repository's router, with tests.
+- `tests/router-scenarios.md`: cases 43 to 45 for Antigravity.
+
+Upstream: pstack 0.15.36 (`c742dd6`), mattpocock/skills v1.3.2 (`d1478fc`).
+
 ## [0.8.0] - 2026-11-10
 
 ### Changed
