@@ -194,21 +194,30 @@ def flatten(value, out):
             flatten(item, out)
 
 
-def hub_keys():
-    """The installed hub's path as a tool input may spell it: native, with forward slashes, and the
-    Git Bash form of a Windows drive (W:/x -> /w/x). Lower case, so the match ignores case."""
-    native = posix(os.path.normcase(str(HUB))).lower()
-    keys = {native, posix(str(HUB)).lower()}
+def path_keys(path):
+    """A path of this install as a tool input may spell it, with forward slashes: native case,
+    as given, and the Git Bash form of a Windows drive (W:/x -> /w/x). Lower case, so the match
+    ignores case."""
+    native = posix(os.path.normcase(str(path))).lower()
+    keys = {native, posix(str(path)).lower()}
     if len(native) > 2 and native[1] == ":":
         keys.add("/" + native[0] + native[2:])
     return keys
 
 
+def hub_keys():
+    return path_keys(HUB)
+
+
+def names_path(text, path):
+    low = posix(text).lower()
+    return any(key in low for key in path_keys(path))
+
+
 def names_hub(text):
     """True when the text names the hub of this install. A hub of another copy (an old cache, a
     clone) does not count: the gate asks for the hub that the running plugin belongs to."""
-    low = posix(text).lower()
-    return any(key in low for key in hub_keys())
+    return names_path(text, HUB)
 
 
 def is_hub_path(value):
@@ -456,12 +465,15 @@ def command_text(tool_input, parts):
     return " ".join(parts)
 
 
-def plain_command(text):
+def plain_command(text, path=HUB):
     """True when the shell command is one command with no chaining, pipe, redirect or substitution,
-    so `cat <hub> && <edit>` cannot pass the gate on the hub's name. The gate reminds a cooperative
-    agent; it is not a security boundary (DECISIONS.md D17)."""
-    for key in hub_keys():
-        text = text.lower().replace(key, "")
+    so `cat <hub> && <edit>` cannot pass the gate on the hub's name. The path is removed in every
+    spelling first (the command is compared with forward slashes, as the keys are), so an `&` in the
+    install path is not taken for an operator. The gate reminds a cooperative agent; it is not a
+    security boundary (DECISIONS.md D17)."""
+    text = posix(text).lower()
+    for key in sorted(path_keys(path), key=len, reverse=True):
+        text = text.replace(key, "")
     return not any(mark in text for mark in CHAIN_MARKS)
 
 
@@ -487,8 +499,10 @@ def do_gate(data):
         parts = []
         flatten(data.get("tool_input"), parts)
         command = command_text(data.get("tool_input"), parts)
-        if names_hub(command) and plain_command(command):
+        if names_hub(command) and plain_command(command, HUB):
             return  # one plain shell command that reads the hub is the way out of the gate
+        if names_path(command, ROUTER) and plain_command(command, ROUTER):
+            return  # the notice asks for the router first; reading it keeps the gate armed
     reason = (
         "proof: the context was summarized and the pstack hub was not read again. "
         "File edits and shell commands wait until you read this file in full (the Read tool, "

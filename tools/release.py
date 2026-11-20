@@ -5,7 +5,8 @@
   python -I tools/release.py check
 
 Version source of truth: plugins/proof/.claude-plugin/plugin.json ("version").
-bump writes the new version into that file and into plugins/proof/plugin.json, and moves the
+bump writes the new version into that file and into the other two manifests (Codex
+.codex-plugin/plugin.json and the root plugin.json for Antigravity), and moves the
 `## [Unreleased]` body of CHANGELOG.md (Keep a Changelog 1.1.0) into `## [x.y.z] - date`, followed
 by the line `Upstream: ...` built from vendor.json. check verifies that all of this agrees.
 """
@@ -19,7 +20,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 CLAUDE_MANIFEST = "plugins/proof/.claude-plugin/plugin.json"
-CODEX_MANIFEST = "plugins/proof/plugin.json"
+CODEX_MANIFEST = "plugins/proof/.codex-plugin/plugin.json"
+# Root manifest for Antigravity and other Agent Plugins hosts. It carries no "$schema": Codex reads a
+# root manifest with an agent-plugins.org "$schema" first and then loads no hooks (DECISIONS.md D19).
+ROOT_MANIFEST = "plugins/proof/plugin.json"
+MANIFESTS = (CLAUDE_MANIFEST, CODEX_MANIFEST, ROOT_MANIFEST)
 CHANGELOG = "CHANGELOG.md"
 VENDOR_JSON = "vendor.json"
 # Digest of the released plugin tree. A host that installs from GitHub delivers a change only when
@@ -139,11 +144,11 @@ def finish_changelog(text, upstream):
 
 def plugin_digest(root):
     """sha256 over every plugin file, with each path and CRLF written as LF, so a Windows and a
-    Linux checkout give the same value. In the two manifests every "version" value is blanked first:
+    Linux checkout give the same value. In the manifests every "version" value is blanked first:
     bump changes it, while any other manifest change (a description, an interface field) counts."""
     import hashlib
     base = Path(root) / PLUGIN_DIR
-    manifests = {CLAUDE_MANIFEST, CODEX_MANIFEST}
+    manifests = set(MANIFESTS)
     h = hashlib.sha256()
     files = []
     for p in base.rglob("*"):
@@ -190,10 +195,10 @@ def lock_problems(root, version):
 
 def plan_bump(root, part, date):
     """Compute every change of a bump without writing. Returns a dict."""
-    old = read_version(root, CLAUDE_MANIFEST)
-    other = read_version(root, CODEX_MANIFEST)
-    if old != other:
-        raise ReleaseError(f"manifests disagree: {CLAUDE_MANIFEST} {old} vs {CODEX_MANIFEST} {other}")
+    versions = {rel: read_version(root, rel) for rel in MANIFESTS}
+    old = versions[CLAUDE_MANIFEST]
+    if len(set(versions.values())) > 1:
+        raise ReleaseError("manifests disagree: " + ", ".join(f"{k} {v}" for k, v in versions.items()))
     new = next_version(old, part)
     if not _DATE_RE.match(date):
         raise ReleaseError(f"--date must be YYYY-MM-DD, got {date!r}")
@@ -206,8 +211,7 @@ def plan_bump(root, part, date):
     return {
         "old": old, "new": new, "date": date, "upstream": up, "moved": moved,
         "files": {
-            CLAUDE_MANIFEST: set_version_text(_read(root, CLAUDE_MANIFEST), new, CLAUDE_MANIFEST),
-            CODEX_MANIFEST: set_version_text(_read(root, CODEX_MANIFEST), new, CODEX_MANIFEST),
+            **{rel: set_version_text(_read(root, rel), new, rel) for rel in MANIFESTS},
             CHANGELOG: finish_changelog(changelog, up),
             RELEASE_LOCK: lock_text(new, plugin_digest(root)),
         },
@@ -218,8 +222,8 @@ def cmd_bump(root, part, date, dry_run):
     plan = plan_bump(root, part, date)
     bullets = sum(1 for l in plan["moved"].split("\n") if re.match(r"\s*[-*+]\s+\S", l))
     print(f"{'planned (dry run, nothing written)' if dry_run else 'bump'}: {plan['old']} -> {plan['new']} ({part})")
-    print(f"  {CLAUDE_MANIFEST}: version {plan['old']} -> {plan['new']}")
-    print(f"  {CODEX_MANIFEST}: version {plan['old']} -> {plan['new']}")
+    for rel in MANIFESTS:
+        print(f"  {rel}: version {plan['old']} -> {plan['new']}")
     print(f"  {CHANGELOG}: move {bullets} Unreleased entr{'y' if bullets == 1 else 'ies'} "
           f"into '## [{plan['new']}] - {plan['date']}'; leave an empty '## [Unreleased]'")
     print(f"  {CHANGELOG}: append '{plan['upstream']}'")
@@ -252,7 +256,7 @@ def check_problems(root):
     """Return a list of failure strings; empty when the release state is consistent."""
     problems = []
     versions = {}
-    for rel in (CLAUDE_MANIFEST, CODEX_MANIFEST):
+    for rel in MANIFESTS:
         try:
             versions[rel] = read_version(root, rel)
         except ReleaseError as exc:
