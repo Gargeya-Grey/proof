@@ -398,6 +398,48 @@ class ReleaseTests(HookCase):
 
 
 class ProofInUseTests(HookCase):
+    def test_22f_a_plain_router_read_passes_and_keeps_the_gate(self):
+        """Codex review 2026-11-20: the notice asks for the router first, so a shell read of it must
+        pass. It does not open the gate; only the hub does."""
+        router = PLUGIN / "skills" / "work" / "SKILL.md"
+        self.compact(CODEX)
+        for tool_input in ({"cmd": "cat '%s'" % router}, {"cmd": "cat %s" % str(router).replace("\\", "/")}):
+            with self.subTest(tool_input=tool_input):
+                data = payload(CODEX, "PreToolUse", tool_name="exec_command", tool_input=tool_input, tool_use_id="u7")
+                rc, out, _ = self.run_hook("gate", data)
+                self.assertEqual(rc, 0)
+                self.assertAllowed(out)
+        chained = payload(CODEX, "PreToolUse", tool_name="exec_command", tool_use_id="u8",
+                          tool_input={"cmd": "cat '%s' && touch x" % router})
+        self.assertDenied(self.run_hook("gate", chained)[1])
+        self.assertTrue(self.marker().exists())
+        self.assertDenied(self.gate("apply_patch", CODEX))
+
+    def test_22g_an_ampersand_in_the_install_path_is_not_an_operator(self):
+        """Codex review 2026-11-20: a native Windows path with `&` must not look like chaining."""
+        root = self.tmp / "R&D" / "proof"
+        (root / "hooks").mkdir(parents=True)
+        copy = root / "hooks" / "proof_hook.py"
+        shutil.copy(str(SCRIPT), str(copy))
+        hub = root / HUB_REL
+        hub.parent.mkdir(parents=True)
+        shutil.copy(str(HUB), str(hub))
+        rc, _, _ = self.run_hook("session-start", payload(CLAUDE, "SessionStart", source="compact"), script=copy)
+        self.assertEqual(rc, 0)
+        self.assertTrue(self.marker().exists())
+        native = str(hub.resolve())
+        for command in ('Get-Content -Raw -Encoding utf8 "%s"' % native, 'cat "%s"' % native.replace("\\", "/")):
+            with self.subTest(command=command):
+                data = payload(CLAUDE, "PreToolUse", tool_name="PowerShell", tool_input={"command": command}, tool_use_id="u9")
+                rc, out, _ = self.run_hook("gate", data, script=copy)
+                self.assertEqual(rc, 0)
+                self.assertAllowed(out)
+        data = payload(CLAUDE, "PreToolUse", tool_name="PowerShell", tool_use_id="u10",
+                       tool_input={"command": 'Get-Content "%s" & Remove-Item x' % native})
+        body = json.loads(self.run_hook("gate", data, script=copy)[1])["hookSpecificOutput"]
+        self.assertEqual(body["permissionDecision"], "deny")
+        self.assertIn(native, body["permissionDecisionReason"])
+
     def test_60_a_session_without_proof_gets_no_notice_and_no_gate(self):
         self.proof_transcript(json.dumps({"type": "user", "message": {"content": "write my essay"}}))
         for sub, event in (("precompact", "PreCompact"), ("session-start", "SessionStart")):

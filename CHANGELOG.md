@@ -10,6 +10,7 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 ### Fixed
 
 - Codex 0.171.0 loaded none of the `proof` hooks: it read the root `plugin.json` as an Agent Plugins manifest (its `"$schema"` is on agent-plugins.org), and that format skips hooks. A new `.codex-plugin/plugin.json` now holds the Codex manifest and its `interface`, and the root `plugin.json` has no `"$schema"`. Codex's `hooks/list` now shows the 4 hooks, untrusted until `/hooks`. Antigravity still reads the root file. DECISIONS.md D19.
+- The edit gate after a summary let only a hub read through, while the notice asks for the router first: a plain shell read of the router now passes and keeps the gate armed. An `&` in a native Windows install path no longer counts as chaining (the command is compared with forward slashes). Both from the Codex review, with tests.
 - `tools/release.py` bumps and checks three manifests; tests cover a root manifest whose version differs.
 
 Upstream: pstack 0.15.36 (`c742dd6`), mattpocock/skills v1.3.2 (`d1478fc`).
